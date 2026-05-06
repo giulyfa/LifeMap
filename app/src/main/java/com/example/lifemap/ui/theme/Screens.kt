@@ -8,14 +8,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 
-sealed class Screen(val route: String) {
+sealed class Screen(val route: String, val label: String? = null, val icon: ImageVector? = null) {
     object Login : Screen("login")
-    object Map : Screen("map")
-    object List : Screen("list")
-    object Profile : Screen("profile")
-    object Settings : Screen("settings")
+    object Map : Screen("map", "Mappa", Icons.Default.Place)
+    object List : Screen("list", "Lista", Icons.Default.List)
+    object Profile : Screen("profile", "Profilo", Icons.Default.Person)
+    object Settings : Screen("settings", "Impostazioni", Icons.Default.Settings)
+
     object Detail : Screen("detail/{memoryId}") {
         fun createRoute(memoryId: Int) = "detail/$memoryId"
     }

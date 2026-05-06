@@ -6,21 +6,20 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.lifemap.ui.theme.DetailScreen
-import com.example.lifemap.ui.theme.LifeMapTheme
-import com.example.lifemap.ui.theme.ListScreen
-import com.example.lifemap.ui.theme.LoginScreen
-import com.example.lifemap.ui.theme.MapScreen
-import com.example.lifemap.ui.theme.ProfileScreen
-import com.example.lifemap.ui.theme.Screen
-import com.example.lifemap.ui.theme.SettingsScreen
+import com.example.lifemap.ui.theme.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,8 +29,58 @@ class MainActivity : ComponentActivity() {
             LifeMapTheme {
                 val navController = rememberNavController()
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                // Osserviamo dove si trova l'utente per decidere se mostrare la barra
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentDestination = navBackStackEntry?.destination
 
+                // Lista delle pagine che vogliamo nella barra in basso
+                val items = listOf(
+                    Screen.Map,
+                    Screen.List,
+                    Screen.Profile,
+                    Screen.Settings
+                )
+
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    // Mostriamo la barra solo se NON siamo nel Login
+                    bottomBar = {
+                        if (currentDestination?.route != Screen.Login.route) {
+                            NavigationBar {
+                                items.forEach { screen ->
+                                    NavigationBarItem(
+                                        icon = {
+                                            // Usiamo l'icona che abbiamo definito nella classe Screen
+                                            Icon(screen.icon!!, contentDescription = screen.label)
+                                        },
+                                        label = { Text(screen.label!!) },
+                                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                                        onClick = {
+                                            navController.navigate(screen.route) {
+                                                // Torna alla pagina iniziale della navigazione per non accumulare stack
+                                                popUpTo(navController.graph.findStartDestination().id) {
+                                                    saveState = true
+                                                }
+                                                launchSingleTop = true
+                                                restoreState = true
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    // Il tasto "+" del mockup (Floating Action Button)
+                    floatingActionButton = {
+                        if (currentDestination?.route != Screen.Login.route) {
+                            FloatingActionButton(onClick = {
+                                /* Qui implementeremo l'aggiunta di un ricordo (Fotocamera/GPS) */
+                            }) {
+                                Icon(Icons.Default.Add, contentDescription = "Aggiungi")
+                            }
+                        }
+                    }
+                ) { innerPadding ->
                     NavHost(
                         navController = navController,
                         startDestination = Screen.Login.route,
