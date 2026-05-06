@@ -11,12 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 
 sealed class Screen(val route: String, val label: String? = null, val icon: ImageVector? = null) {
     object Login : Screen("login")
     object Map : Screen("map", "Mappa", Icons.Default.Place)
-    object List : Screen("list", "Lista", Icons.Default.List)
+    object List : Screen("list", "Lista", Icons.AutoMirrored.Filled.List)
     object Profile : Screen("profile", "Profilo", Icons.Default.Person)
     object Settings : Screen("settings", "Impostazioni", Icons.Default.Settings)
 
