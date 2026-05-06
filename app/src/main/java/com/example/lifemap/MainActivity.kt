@@ -28,16 +28,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LifeMapTheme {
-                // 1. Creiamo il controller che gestisce gli spostamenti
                 val navController = rememberNavController()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 
-                    // 2. Il NavHost "ascolta" il controller e mostra la schermata giusta
                     NavHost(
                         navController = navController,
                         startDestination = Screen.Login.route,
-                        modifier = Modifier.padding(innerPadding) // Fondamentale!
+                        modifier = Modifier.padding(innerPadding)
                     ) {
                         composable(Screen.Login.route) { LoginScreen(navController) }
                         composable(Screen.Map.route) { MapScreen(navController) }
@@ -45,7 +43,6 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Profile.route) { ProfileScreen(navController) }
                         composable(Screen.Settings.route) { SettingsScreen(navController) }
 
-                        // 3. Gestione della rotta dinamica per il dettaglio
                         composable(
                             route = Screen.Detail.route,
                             arguments = listOf(navArgument("memoryId") { type = NavType.IntType })

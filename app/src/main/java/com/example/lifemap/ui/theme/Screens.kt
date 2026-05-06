@@ -10,7 +10,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 
-// 1. Le nostre rotte
 sealed class Screen(val route: String) {
     object Login : Screen("login")
     object Map : Screen("map")
@@ -22,7 +21,6 @@ sealed class Screen(val route: String) {
     }
 }
 
-// 2. Le Schermate
 @Composable
 fun LoginScreen(navController: NavController) {
     Column(
@@ -79,7 +77,7 @@ fun ProfileScreen(navController: NavController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "👤 Pagina Profilo utente (Vale 2 punti!)")
+        Text(text = "👤 Pagina Profilo utente")
         Button(onClick = { navController.navigate(Screen.Settings.route) }) {
             Text("Vai alle Impostazioni")
         }
