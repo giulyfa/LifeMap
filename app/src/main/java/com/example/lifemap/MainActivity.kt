@@ -13,8 +13,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.lifemap.ui.theme.DetailScreen
 import com.example.lifemap.ui.theme.LifeMapTheme
+import com.example.lifemap.ui.theme.ListScreen
+import com.example.lifemap.ui.theme.LoginScreen
+import com.example.lifemap.ui.theme.MapScreen
+import com.example.lifemap.ui.theme.ProfileScreen
 import com.example.lifemap.ui.theme.Screen
+import com.example.lifemap.ui.theme.SettingsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

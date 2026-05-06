@@ -1,4 +1,4 @@
-package com.example.lifemap // Assicurati che questo combaci con il tuo package reale
+package com.example.lifemap.ui.theme
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
