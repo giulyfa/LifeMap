@@ -42,6 +42,30 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.AssistChip
+import androidx.compose.ui.unit.dp
+import android.location.Geocoder
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import com.example.lifemap.data.MemoryCategory
+import com.google.maps.android.compose.rememberMarkerState
+import com.google.maps.android.compose.rememberUpdatedMarkerState
+import java.util.Locale
+import android.os.Build
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.OutlinedTextField
 
 sealed class Screen(val route: String, val label: String? = null, val icon: ImageVector? = null) {
     object Login : Screen("login")
@@ -75,13 +99,25 @@ fun LoginScreen(navController: NavController) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(navController: NavController) {
     val context = LocalContext.current
-    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
-    var hasLocationPermission by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
+    // variabili x la bottom sheet
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+    var title by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf(MemoryCategory.ALTRO) }
+    var isDropdownExpanded by remember { mutableStateOf(false) }
+    var currentAddress by remember { mutableStateOf("Ricerca indirizzo...") }
+    var currentLatLng by remember { mutableStateOf(LatLng(0.0, 0.0)) }
+
+    // variabili x la mappa
+    var hasLocationPermission by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -121,11 +157,12 @@ fun MapScreen(navController: NavController) {
             uiSettings = uiSettings
         ) {
             Marker(
-                state = MarkerState(position = startingLocation),
+                state = rememberUpdatedMarkerState(position = startingLocation),
                 title = "Piazza del Popolo",
                 snippet = "Il nostro primo pin di prova!"
             )
         }
+
         if (hasLocationPermission) {
             FloatingActionButton(
                 onClick = {
@@ -156,6 +193,150 @@ fun MapScreen(navController: NavController) {
                 contentColor = Color.Black
             ) {
                 Icon(Icons.Default.MyLocation, contentDescription = "Centra GPS")
+            }
+
+            FloatingActionButton(
+                onClick = {
+                    val fineLocationPermission = ContextCompat.checkSelfPermission(
+                        context, Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+
+                    if (fineLocationPermission) {
+                        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                            location?.let {
+                                currentLatLng = LatLng(it.latitude, it.longitude)
+
+                                // Traduciamo le coordinate in indirizzo
+                                try {
+                                    val geocoder = Geocoder(context, Locale.getDefault())
+
+                                    // Controlliamo se il telefono ha Android 13 o superiore
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        geocoder.getFromLocation(it.latitude, it.longitude, 1) { addresses ->
+                                            currentAddress = addresses.firstOrNull()?.getAddressLine(0) ?: "Indirizzo sconosciuto"
+                                            showBottomSheet = true // Apre il pannello quando ha finito
+                                        }
+                                    } else {
+                                        // Per i telefoni più vecchi usiamo il metodo classico
+                                        @Suppress("DEPRECATION")
+                                        val addresses = geocoder.getFromLocation(it.latitude, it.longitude, 1)
+                                        currentAddress = addresses?.firstOrNull()?.getAddressLine(0) ?: "Indirizzo sconosciuto"
+                                        showBottomSheet = true // Apre il pannello
+                                    }
+                                } catch (e: Exception) {
+                                    currentAddress = "Indirizzo non disponibile"
+                                    showBottomSheet = true // Apre il pannello anche se non c'è internet
+                                }
+                            }
+                        }
+                    } else {
+                        permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(bottom = 32.dp, start = 16.dp),
+                containerColor = Purple2,
+                contentColor = Color.Black
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Aggiungi Ricordo")
+            }
+        }
+
+        // pannello a scompare (solo se showBottomSheet è true)
+        // MANCA L'IMAGEPATH
+        if (showBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showBottomSheet = false },
+                sheetState = sheetState,
+                containerColor = Color.White
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Nuovo Ricordo", style = MaterialTheme.typography.headlineSmall)
+                    Text(currentAddress, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    TextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        label = { Text("Titolo") },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    TextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        label = { Text("Descrizione o appunti...") },
+                        modifier = Modifier.fillMaxWidth().height(100.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent
+                        ),
+                        maxLines = 4
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // selettore categorie
+                    ExposedDropdownMenuBox(
+                        expanded = isDropdownExpanded,
+                        onExpandedChange = { isDropdownExpanded = !isDropdownExpanded },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutlinedTextField(
+                            value = selectedCategory.name,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Categoria") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded)
+                            },
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                            modifier = Modifier
+                                .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                                .fillMaxWidth()
+                        )
+
+                        // lista che scende quando clicchi
+                        ExposedDropdownMenu(
+                            expanded = isDropdownExpanded,
+                            onDismissRequest = { isDropdownExpanded = false }
+                        ) {
+                            MemoryCategory.entries.forEach { category ->
+                                DropdownMenuItem(
+                                    text = { Text(category.name) },
+                                    onClick = {
+                                        selectedCategory = category // Aggiorna la scelta
+                                        isDropdownExpanded = false  // Chiude la tendina
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Button(
+                        onClick = {
+                            // QUI in futuro inseriremo il codice per salvare nel Database
+                            showBottomSheet = false
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Purple2)
+                    ) {
+                        Text("Salva Ricordo", color = Color.Black)
+                    }
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
             }
         }
     }

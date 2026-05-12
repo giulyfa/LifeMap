@@ -9,8 +9,8 @@ interface MemoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMemory(memory: Memory)
 
-    // Legge tutti i ricordi. Flow per far sì che la UI
-    // si aggiorni da sola appena viene aggiunto un nuovo ricordo
+    // Legge tutti i ricordi.
+    // Flow per far sì che la UI si aggiorni appena viene aggiunto un nuovo ricordo
     @Query("SELECT * FROM memories ORDER BY date DESC")
     fun getAllMemories(): Flow<List<Memory>>
 

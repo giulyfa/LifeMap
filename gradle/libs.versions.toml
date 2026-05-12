@@ -14,6 +14,7 @@ navigationCompose = "2.9.8"
 playServicesMaps = "20.0.0"
 playServicesLocation = "21.3.0"
 room = "2.6.1"
+foundationLayout = "1.11.1"
 
 
 [libraries]
@@ -41,6 +42,7 @@ play-services-location = { group = "com.google.android.gms", name = "play-servic
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

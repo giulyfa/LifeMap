@@ -42,19 +42,6 @@ fun LifeMapApp() {
             if (currentDestination?.route != Screen.Login.route) {
                 LifeMapBottomBar(navController, currentDestination, items)
             }
-        },
-        // Il tasto "+" del mockup (Floating Action Button)
-        floatingActionButton = {
-            if (currentDestination?.route != Screen.Login.route) {
-                FloatingActionButton(onClick = {
-                    /* Qui implementeremo l'aggiunta di un ricordo (Fotocamera/GPS) */ },
-                    containerColor = Purple2,
-                    contentColor = Color.Black,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Aggiungi")
-                }
-            }
         }
     ) { innerPadding ->
         LifeMapNavGraph(
