@@ -7,12 +7,14 @@ espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.13.0"
 kotlin = "2.3.21"
-composeBom = "2026.04.01"
+composeBom = "2026.05.00"
 mapsCompose = "8.3.0"
-mapsComposeVersion = "4.3.3"
+mapsComposeVersion = "8.3.0"
 navigationCompose = "2.9.8"
 playServicesMaps = "20.0.0"
 playServicesLocation = "21.3.0"
+room = "2.6.1"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,6 +38,9 @@ maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = 
 maps-compose-v433 = { module = "com.google.maps.android:maps-compose", version.ref = "mapsComposeVersion" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
