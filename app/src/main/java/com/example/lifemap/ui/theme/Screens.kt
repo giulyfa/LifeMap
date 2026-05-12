@@ -13,6 +13,12 @@ import androidx.navigation.NavController
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 
 sealed class Screen(val route: String, val label: String? = null, val icon: ImageVector? = null) {
     object Login : Screen("login")
@@ -48,15 +54,25 @@ fun LoginScreen(navController: NavController) {
 
 @Composable
 fun MapScreen(navController: NavController) {
-    Column(
+    // Impostiamo le coordinate iniziali della mappa (centro città)
+    val startingLocation = LatLng(44.1391, 12.2432)
+
+    // Configariamo la telecamera per partire da quelle coordinate con uno zoom adeguato
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(startingLocation, 14f)
+    }
+
+    // Ecco il componente magico che disegna l'intera mappa a tutto schermo!
+    GoogleMap(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        cameraPositionState = cameraPositionState
     ) {
-        Text(text = "📍 Qui ci sarà la Mappa interattiva!")
-        Button(onClick = { navController.navigate(Screen.List.route) }) {
-            Text("Vai alla Lista dei ricordi")
-        }
+        // Inseriamo un primo marker di prova
+        Marker(
+            state = MarkerState(position = startingLocation),
+            title = "Piazza del Popolo",
+            snippet = "Il nostro primo pin di prova!"
+        )
     }
 }
 

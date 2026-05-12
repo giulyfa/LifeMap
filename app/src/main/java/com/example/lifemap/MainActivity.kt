@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -43,6 +44,7 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
+                    floatingActionButtonPosition = FabPosition.Start,
                     // Mostriamo la barra solo se NON siamo nel Login
                     bottomBar = {
                         if (currentDestination?.route != Screen.Login.route) {
@@ -74,8 +76,9 @@ class MainActivity : ComponentActivity() {
                     floatingActionButton = {
                         if (currentDestination?.route != Screen.Login.route) {
                             FloatingActionButton(onClick = {
-                                /* Qui implementeremo l'aggiunta di un ricordo (Fotocamera/GPS) */
-                            }) {
+                                /* Qui implementeremo l'aggiunta di un ricordo (Fotocamera/GPS) */ },
+                                modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)
+                            ) {
                                 Icon(Icons.Default.Add, contentDescription = "Aggiungi")
                             }
                         }
