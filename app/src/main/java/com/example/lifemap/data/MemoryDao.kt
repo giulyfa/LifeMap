@@ -5,20 +5,21 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MemoryDao {
-    // Inserisce un nuovo ricordo. Se l'ID esiste già, lo sostituisce.
+    // AGGIUNTO ": Long" ALLA FINE
+    // Inserisce un nuovo ricordo e restituisce l'ID della riga.
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMemory(memory: Memory)
+    suspend fun insertMemory(memory: Memory): Long
 
     // Legge tutti i ricordi.
-    // Flow per far sì che la UI si aggiorni appena viene aggiunto un nuovo ricordo
     @Query("SELECT * FROM memories ORDER BY date DESC")
     fun getAllMemories(): Flow<List<Memory>>
 
-    // Cancella un ricordo specifico
+    // AGGIUNTO ": Int" ALLA FINE
+    // Cancella un ricordo e restituisce il numero di righe modificate.
     @Delete
-    suspend fun deleteMemory(memory: Memory)
+    suspend fun deleteMemory(memory: Memory): Int
 
-    // Cerca un ricordo per ID
+    // Cerca un ricordo per ID (questo va già bene perché restituisce Memory?)
     @Query("SELECT * FROM memories WHERE id = :id")
     suspend fun getMemoryById(id: Int): Memory?
 
