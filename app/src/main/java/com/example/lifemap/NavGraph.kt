@@ -7,6 +7,13 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.lifemap.ui.DetailScreen
+import com.example.lifemap.ui.ListScreen
+import com.example.lifemap.ui.LoginScreen
+import com.example.lifemap.ui.MapScreen
+import com.example.lifemap.ui.ProfileScreen
+import com.example.lifemap.ui.Screen
+import com.example.lifemap.ui.SettingsScreen
 import com.example.lifemap.ui.theme.*
 
 @Composable
