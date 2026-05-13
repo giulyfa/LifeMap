@@ -47,13 +47,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import com.example.lifemap.R
 import com.example.lifemap.data.MemoryCategory
 import com.example.lifemap.ui.MemoryViewModel
-import com.example.lifemap.ui.theme.Purple2
+import com.example.lifemap.ui.theme.Green2
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
@@ -100,7 +102,8 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
         position = CameraPosition.fromLatLngZoom(startingLocation, 14f)
     }
     val mapProperties = remember(hasLocationPermission) {
-        MapProperties(isMyLocationEnabled = hasLocationPermission)
+        MapProperties(isMyLocationEnabled = hasLocationPermission,
+            mapStyleOptions = MapStyleOptions.loadRawResourceStyle(context, R.raw.map_style))
     }
     val uiSettings = remember {
         MapUiSettings(
@@ -149,8 +152,8 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(bottom = 32.dp, end = 16.dp),
-                containerColor = Purple2,
-                contentColor = Color.Black
+                containerColor = Green2,
+                contentColor = Color.White
             ) {
                 Icon(Icons.Default.MyLocation, contentDescription = "Centra GPS")
             }
@@ -194,8 +197,8 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(bottom = 32.dp, start = 16.dp),
-                containerColor = Purple2,
-                contentColor = Color.Black
+                containerColor = Green2,
+                contentColor = Color.White
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Aggiungi Ricordo")
             }
@@ -295,7 +298,7 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
                             showBottomSheet = false
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Purple2)
+                        colors = ButtonDefaults.buttonColors(containerColor = Green2)
                     ) {
                         Text("Salva Ricordo", color = Color.Black)
                     }
