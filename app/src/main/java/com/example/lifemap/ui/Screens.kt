@@ -77,6 +77,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberUpdatedMarkerState
 import kotlinx.coroutines.launch
 import java.util.Locale
+import androidx.biometric.BiometricPrompt
 
 sealed class Screen(val route: String, val label: String? = null, val icon: ImageVector? = null) {
     object Login : Screen("login")
@@ -213,6 +214,35 @@ private fun authenticateWithBiometrics(context: Context, onSuccess: () -> Unit) 
             return
         }
     }
+
+    val executor = ContextCompat.getMainExecutor(context)
+
+    val biometricPrompt = BiometricPrompt(
+        activity,
+        executor,
+        object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                super.onAuthenticationSucceeded(result)
+                onSuccess()
+            }
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                super.onAuthenticationError(errorCode, errString)
+                Toast.makeText(context, "Accesso annullato", Toast.LENGTH_SHORT).show()
+            }
+            override fun onAuthenticationFailed() {
+                super.onAuthenticationFailed()
+                Toast.makeText(context, "Impronta non riconosciuta", Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+
+    val promptInfo = BiometricPrompt.PromptInfo.Builder()
+        .setTitle("Accesso a LifeMap")
+        .setSubtitle("Usa l'impronta o il viso per entrare")
+        .setNegativeButtonText("Usa password")
+        .build()
+
+    biometricPrompt.authenticate(promptInfo)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
