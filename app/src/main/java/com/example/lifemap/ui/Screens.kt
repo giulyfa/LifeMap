@@ -47,6 +47,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -247,22 +248,20 @@ private fun authenticateWithBiometrics(context: Context, onSuccess: () -> Unit) 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MapScreen(navController: NavController) {
+fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    // variabili x la bottom sheet
+    // LEGGIAMO LO STATO DAL VIEWMODEL
+    val uiState by viewModel.uiState.collectAsState()
+
+    // Variabili per l'interfaccia (mostrare/nascondere)
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf(MemoryCategory.ALTRO) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
-    var currentAddress by remember { mutableStateOf("Ricerca indirizzo...") }
-    var currentLatLng by remember { mutableStateOf(LatLng(0.0, 0.0)) }
 
-    // variabili x la mappa
+    // Variabili per i permessi e la mappa
     var hasLocationPermission by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -293,9 +292,9 @@ fun MapScreen(navController: NavController) {
         )
     }
 
-    Box(modifier = Modifier.Companion.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
         GoogleMap(
-            modifier = Modifier.Companion.fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
             properties = mapProperties,
             uiSettings = uiSettings
@@ -330,11 +329,11 @@ fun MapScreen(navController: NavController) {
                         permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
                     }
                 },
-                modifier = Modifier.Companion
-                    .align(Alignment.Companion.BottomEnd)
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
                     .padding(bottom = 32.dp, end = 16.dp),
                 containerColor = Purple2,
-                contentColor = Color.Companion.Black
+                contentColor = Color.Black
             ) {
                 Icon(Icons.Default.MyLocation, contentDescription = "Centra GPS")
             }
@@ -348,37 +347,26 @@ fun MapScreen(navController: NavController) {
                     if (fineLocationPermission) {
                         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                             location?.let {
-                                currentLatLng = LatLng(it.latitude, it.longitude)
-
-                                // Traduciamo le coordinate in indirizzo
                                 try {
                                     val geocoder = Geocoder(context, Locale.getDefault())
 
-                                    // Controlliamo se il telefono ha Android 13 o superiore
+                                    // SALVIAMO LE COORDINATE E L'INDIRIZZO NEL VIEWMODEL
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                        geocoder.getFromLocation(
-                                            it.latitude,
-                                            it.longitude,
-                                            1
-                                        ) { addresses ->
-                                            currentAddress =
-                                                addresses.firstOrNull()?.getAddressLine(0)
-                                                    ?: "Indirizzo sconosciuto"
+                                        geocoder.getFromLocation(it.latitude, it.longitude, 1) { addresses ->
+                                            val addressFound = addresses.firstOrNull()?.getAddressLine(0) ?: "Indirizzo sconosciuto"
+                                            viewModel.updateLocation(it.latitude, it.longitude, addressFound)
                                             showBottomSheet = true
                                         }
                                     } else {
-                                        // Per i telefoni più vecchi usiamo il metodo classico
                                         @Suppress("DEPRECATION")
-                                        val addresses =
-                                            geocoder.getFromLocation(it.latitude, it.longitude, 1)
-                                        currentAddress = addresses?.firstOrNull()?.getAddressLine(0)
-                                            ?: "Indirizzo sconosciuto"
+                                        val addresses = geocoder.getFromLocation(it.latitude, it.longitude, 1)
+                                        val addressFound = addresses?.firstOrNull()?.getAddressLine(0) ?: "Indirizzo sconosciuto"
+                                        viewModel.updateLocation(it.latitude, it.longitude, addressFound)
                                         showBottomSheet = true
                                     }
                                 } catch (e: Exception) {
-                                    currentAddress = "Indirizzo non disponibile"
-                                    showBottomSheet =
-                                        true // Apre il pannello anche se non c'è internet
+                                    viewModel.updateLocation(it.latitude, it.longitude, "Indirizzo non disponibile")
+                                    showBottomSheet = true
                                 }
                             }
                         }
@@ -386,87 +374,85 @@ fun MapScreen(navController: NavController) {
                         permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
                     }
                 },
-                modifier = Modifier.Companion
-                    .align(Alignment.Companion.BottomStart)
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
                     .padding(bottom = 32.dp, start = 16.dp),
                 containerColor = Purple2,
-                contentColor = Color.Companion.Black
+                contentColor = Color.Black
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Aggiungi Ricordo")
             }
         }
 
-        // pannello a scompare (solo se showBottomSheet è true)
-        // MANCA L'IMAGEPATH e stellina preferiti!!!!
         if (showBottomSheet) {
             ModalBottomSheet(
                 onDismissRequest = { showBottomSheet = false },
                 sheetState = sheetState,
-                containerColor = Color.Companion.White
+                containerColor = Color.White
             ) {
                 Column(
-                    modifier = Modifier.Companion
+                    modifier = Modifier
                         .padding(24.dp)
                         .fillMaxWidth(),
-                    horizontalAlignment = Alignment.Companion.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text("Nuovo Ricordo", style = MaterialTheme.typography.headlineSmall)
+
+                    // MOSTRIAMO L'INDIRIZZO DAL VIEWMODEL
                     Text(
-                        currentAddress,
+                        text = uiState.address,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Companion.Gray
+                        color = Color.Gray
                     )
 
-                    Spacer(modifier = Modifier.Companion.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
+                    // TITOLO COLLEGATO AL VIEWMODEL
                     TextField(
-                        value = title,
-                        onValueChange = { title = it },
+                        value = uiState.title,
+                        onValueChange = { viewModel.updateTitle(it) },
                         label = { Text("Titolo") },
-                        modifier = Modifier.Companion.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Companion.Transparent,
-                            unfocusedContainerColor = Color.Companion.Transparent
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent
                         )
                     )
 
-                    Spacer(modifier = Modifier.Companion.height(8.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
+                    // DESCRIZIONE COLLEGATA AL VIEWMODEL
                     TextField(
-                        value = description,
-                        onValueChange = { description = it },
+                        value = uiState.description,
+                        onValueChange = { viewModel.updateDescription(it) },
                         label = { Text("Descrizione o appunti...") },
-                        modifier = Modifier.Companion.fillMaxWidth().height(100.dp),
+                        modifier = Modifier.fillMaxWidth().height(100.dp),
                         colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Companion.Transparent,
-                            unfocusedContainerColor = Color.Companion.Transparent
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent
                         ),
                         maxLines = 4
                     )
 
-                    Spacer(modifier = Modifier.Companion.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    // selettore categorie
                     ExposedDropdownMenuBox(
                         expanded = isDropdownExpanded,
                         onExpandedChange = { isDropdownExpanded = !isDropdownExpanded },
-                        modifier = Modifier.Companion.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         OutlinedTextField(
-                            value = selectedCategory.name,
+                            value = uiState.category.name, // CATEGORIA DAL VIEWMODEL
                             onValueChange = {},
                             readOnly = true,
                             label = { Text("Categoria") },
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded)
-                            },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
                             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                            modifier = Modifier.Companion
-                                .menuAnchor(type = ExposedDropdownMenuAnchorType.Companion.PrimaryNotEditable)
+                            modifier = Modifier
+                                .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                                 .fillMaxWidth()
                         )
 
-                        // lista che scende quando clicchi
                         ExposedDropdownMenu(
                             expanded = isDropdownExpanded,
                             onDismissRequest = { isDropdownExpanded = false }
@@ -475,7 +461,7 @@ fun MapScreen(navController: NavController) {
                                 DropdownMenuItem(
                                     text = { Text(category.name) },
                                     onClick = {
-                                        selectedCategory = category
+                                        viewModel.updateCategory(category) // AGGIORNA LA CATEGORIA NEL VIEWMODEL
                                         isDropdownExpanded = false
                                     }
                                 )
@@ -483,19 +469,20 @@ fun MapScreen(navController: NavController) {
                         }
                     }
 
-                    Spacer(modifier = Modifier.Companion.height(24.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
+                    // TASTO SALVA CHE CHIAMA IL DATABASE
                     Button(
                         onClick = {
-                            // QUI in futuro inseriremo il codice per salvare nel Database
+                            viewModel.saveMemory()
                             showBottomSheet = false
                         },
-                        modifier = Modifier.Companion.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = Purple2)
                     ) {
-                        Text("Salva Ricordo", color = Color.Companion.Black)
+                        Text("Salva Ricordo", color = Color.Black)
                     }
-                    Spacer(modifier = Modifier.Companion.height(32.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
             }
         }

@@ -67,6 +67,10 @@ class MemoryViewModel(private val memoryDao: MemoryDao) : ViewModel() {
         }
     }
 
+    fun updateCategory(newCategory: MemoryCategory) {
+        _uiState.update { it.copy(category = newCategory) }
+    }
+
     // Factory per creare il ViewModel
     class Factory(private val memoryDao: MemoryDao) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")

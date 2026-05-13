@@ -2,25 +2,21 @@ package com.example.lifemap
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.lifemap.ui.MemoryViewModel
 import com.example.lifemap.ui.Screen
-import com.example.lifemap.ui.theme.*
 
 @Composable
-fun LifeMapApp() {
+fun LifeMapApp(viewModel: MemoryViewModel) {
     val navController = rememberNavController()
 
     // Osserviamo dove si trova l'utente per decidere se mostrare la barra
@@ -47,6 +43,7 @@ fun LifeMapApp() {
     ) { innerPadding ->
         LifeMapNavGraph(
             navController = navController,
+            viewModel = viewModel,
             modifier = Modifier.padding(innerPadding)
         )
     }

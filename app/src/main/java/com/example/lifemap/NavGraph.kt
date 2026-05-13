@@ -14,11 +14,12 @@ import com.example.lifemap.ui.MapScreen
 import com.example.lifemap.ui.ProfileScreen
 import com.example.lifemap.ui.Screen
 import com.example.lifemap.ui.SettingsScreen
-import com.example.lifemap.ui.theme.*
+import com.example.lifemap.ui.MemoryViewModel
 
 @Composable
 fun LifeMapNavGraph(
     navController: NavHostController,
+    viewModel: MemoryViewModel,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -27,7 +28,9 @@ fun LifeMapNavGraph(
         modifier = modifier
     ) {
         composable(Screen.Login.route) { LoginScreen(navController) }
-        composable(Screen.Map.route) { MapScreen(navController) }
+
+        composable(Screen.Map.route) { MapScreen(navController, viewModel) }
+
         composable(Screen.List.route) { ListScreen(navController) }
         composable(Screen.Profile.route) { ProfileScreen(navController) }
         composable(Screen.Settings.route) { SettingsScreen(navController) }
