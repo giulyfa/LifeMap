@@ -57,6 +57,8 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.biometric)
+    implementation(libs.androidx.fragment.ktx)
     annotationProcessor(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
