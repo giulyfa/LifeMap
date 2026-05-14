@@ -6,45 +6,23 @@ import android.location.Geocoder
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.outlined.Save
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.lifemap.R
@@ -56,14 +34,11 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.rememberUpdatedMarkerState
+import com.google.maps.android.compose.*
 import kotlinx.coroutines.launch
 import java.util.Locale
+import java.text.SimpleDateFormat
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,7 +52,7 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
 
     // Variabili per l'interfaccia (mostrare/nascondere)
     var showBottomSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var isDropdownExpanded by remember { mutableStateOf(false) }
 
     // Variabili per i permessi e la mappa
@@ -151,7 +126,7 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
                 },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(bottom = 32.dp, end = 16.dp),
+                    .padding(bottom = 154.dp, end = 16.dp),
                 containerColor = Green2,
                 contentColor = Color.White
             ) {
@@ -170,22 +145,42 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
                                 try {
                                     val geocoder = Geocoder(context, Locale.getDefault())
 
-                                    // SALVIAMO LE COORDINATE E L'INDIRIZZO NEL VIEWMODEL
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                        geocoder.getFromLocation(it.latitude, it.longitude, 1) { addresses ->
-                                            val addressFound = addresses.firstOrNull()?.getAddressLine(0) ?: "Indirizzo sconosciuto"
-                                            viewModel.updateLocation(it.latitude, it.longitude, addressFound)
+                                        geocoder.getFromLocation(
+                                            it.latitude,
+                                            it.longitude,
+                                            1
+                                        ) { addresses ->
+                                            val addressFound =
+                                                addresses.firstOrNull()?.getAddressLine(0)
+                                                    ?: "Indirizzo sconosciuto"
+                                            viewModel.updateLocation(
+                                                it.latitude,
+                                                it.longitude,
+                                                addressFound
+                                            )
                                             showBottomSheet = true
                                         }
                                     } else {
                                         @Suppress("DEPRECATION")
-                                        val addresses = geocoder.getFromLocation(it.latitude, it.longitude, 1)
-                                        val addressFound = addresses?.firstOrNull()?.getAddressLine(0) ?: "Indirizzo sconosciuto"
-                                        viewModel.updateLocation(it.latitude, it.longitude, addressFound)
+                                        val addresses =
+                                            geocoder.getFromLocation(it.latitude, it.longitude, 1)
+                                        val addressFound =
+                                            addresses?.firstOrNull()?.getAddressLine(0)
+                                                ?: "Indirizzo sconosciuto"
+                                        viewModel.updateLocation(
+                                            it.latitude,
+                                            it.longitude,
+                                            addressFound
+                                        )
                                         showBottomSheet = true
                                     }
                                 } catch (e: Exception) {
-                                    viewModel.updateLocation(it.latitude, it.longitude, "Indirizzo non disponibile")
+                                    viewModel.updateLocation(
+                                        it.latitude,
+                                        it.longitude,
+                                        "Indirizzo non disponibile"
+                                    )
                                     showBottomSheet = true
                                 }
                             }
@@ -196,7 +191,7 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
                 },
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(bottom = 32.dp, start = 16.dp),
+                    .padding(bottom = 154.dp, start = 16.dp),
                 containerColor = Green2,
                 contentColor = Color.White
             ) {
@@ -204,107 +199,205 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
             }
         }
 
+        // BOTTOM SHEET
         if (showBottomSheet) {
             ModalBottomSheet(
                 onDismissRequest = { showBottomSheet = false },
                 sheetState = sheetState,
-                containerColor = Color.White
+                // Usiamo il colore 'surface' del tema: sarà bianco di giorno, scuro di notte
+                containerColor = MaterialTheme.colorScheme.surface,
+                dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.onSurfaceVariant) }
             ) {
                 Column(
                     modifier = Modifier
-                        .padding(24.dp)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxWidth()
+                        .padding(start = 24.dp, end = 24.dp, bottom = 32.dp, top = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
-                    Text("Nuovo Ricordo", style = MaterialTheme.typography.headlineSmall)
 
-                    // MOSTRIAMO L'INDIRIZZO DAL VIEWMODEL
-                    Text(
-                        text = uiState.address,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
+                    // CHIP DELL'INDIRIZZO
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = Color.Transparent,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "Posizione",
+                                tint = Green2, // Manteniamo il tuo verde come accento
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = uiState.address,
+                                // Colore del testo dinamico principale
+                                color = MaterialTheme.colorScheme.onSurface,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                    }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    // HEADER
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        Text(
+                            text = "Nuovo ricordo",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+                        )
+                        val currentTime = remember {
+                            SimpleDateFormat(
+                                "HH:mm",
+                                Locale.getDefault()
+                            ).format(Date())
+                        }
+                        Text(
+                            text = "Oggi • $currentTime",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
 
-                    // TITOLO COLLEGATO AL VIEWMODEL
-                    TextField(
+                    // CAMPO TITOLO
+                    MemoryFormField(
+                        label = "TITOLO",
                         value = uiState.title,
                         onValueChange = { viewModel.updateTitle(it) },
-                        label = { Text("Titolo") },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent
-                        )
+                        placeholder = "Dai un nome a questo momento"
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // DESCRIZIONE COLLEGATA AL VIEWMODEL
-                    TextField(
+                    // CAMPO DESCRIZIONE
+                    MemoryFormField(
+                        label = "NOTE",
                         value = uiState.description,
                         onValueChange = { viewModel.updateDescription(it) },
-                        label = { Text("Descrizione o appunti...") },
-                        modifier = Modifier.fillMaxWidth().height(100.dp),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent
-                        ),
-                        maxLines = 4
+                        placeholder = "Cosa rende speciale questo posto?",
+                        modifier = Modifier.height(100.dp),
+                        singleLine = false
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    ExposedDropdownMenuBox(
-                        expanded = isDropdownExpanded,
-                        onExpandedChange = { isDropdownExpanded = !isDropdownExpanded },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        OutlinedTextField(
-                            value = uiState.category.name, // CATEGORIA DAL VIEWMODEL
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Categoria") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
-                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                            modifier = Modifier
-                                .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                                .fillMaxWidth()
+                    // CATEGORIA
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "CATEGORIA",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            letterSpacing = 1.sp
                         )
 
-                        ExposedDropdownMenu(
+                        ExposedDropdownMenuBox(
                             expanded = isDropdownExpanded,
-                            onDismissRequest = { isDropdownExpanded = false }
+                            onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
                         ) {
-                            MemoryCategory.entries.forEach { category ->
-                                DropdownMenuItem(
-                                    text = { Text(category.name) },
-                                    onClick = {
-                                        viewModel.updateCategory(category) // AGGIORNA LA CATEGORIA NEL VIEWMODEL
-                                        isDropdownExpanded = false
-                                    }
-                                )
+                            OutlinedTextField(
+                                value = uiState.category.name,
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDropdownExpanded) },
+                                modifier = Modifier
+                                    .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                                    .fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = dynamicTextFieldColors()
+                            )
+
+                            // Menu a tendina
+                            ExposedDropdownMenu(
+                                expanded = isDropdownExpanded,
+                                onDismissRequest = { isDropdownExpanded = false },
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            ) {
+                                MemoryCategory.entries.forEach { category ->
+                                    DropdownMenuItem(
+                                        text = { Text(category.name)},
+                                        onClick = {
+                                            viewModel.updateCategory(category)
+                                            isDropdownExpanded = false
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // TASTO SALVA CHE CHIAMA IL DATABASE
-                    Button(
+                    // PULSANTE SALVA
+                    OutlinedButton(
                         onClick = {
                             viewModel.saveMemory()
                             showBottomSheet = false
                         },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Green2)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color.Transparent,
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                     ) {
-                        Text("Salva Ricordo", color = Color.Black)
+                        Icon(
+                            Icons.Outlined.Save,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Salva ricordo", fontWeight = FontWeight.SemiBold)
                     }
-                    Spacer(modifier = Modifier.height(32.dp))
                 }
             }
         }
     }
 }
+
+// FUNZIONI DI SUPPORTO PER IL DESIGN
+        @Composable
+        fun MemoryFormField(
+            label: String,
+            value: String,
+            onValueChange: (String) -> Unit,
+            placeholder: String,
+            modifier: Modifier = Modifier,
+            singleLine: Boolean = true
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall,
+                    // Testo dell'etichetta dinamico (es. grigio scuro di giorno)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = 1.sp
+                )
+                OutlinedTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)) },
+                    modifier = modifier.fillMaxWidth(),
+                    singleLine = singleLine,
+                    shape = RoundedCornerShape(12.dp),
+                    // CHIAMIAMO LA NUOVA FUNZIONE
+                    colors = dynamicTextFieldColors()
+                )
+            }
+        }
+
+        @Composable
+        fun dynamicTextFieldColors() = OutlinedTextFieldDefaults.colors(
+            // Bordo quando ci clicchi (puoi usare il tuo Green2 se preferisci)
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            // Bordo normale
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+            // Testo dinamico
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            cursorColor = MaterialTheme.colorScheme.primary,
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent
+        )

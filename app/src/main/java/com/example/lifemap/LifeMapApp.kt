@@ -1,11 +1,21 @@
 package com.example.lifemap
 
+import android.app.Activity
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -14,16 +24,20 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.lifemap.ui.MemoryViewModel
 import com.example.lifemap.ui.Screen
+import com.example.lifemap.ui.theme.Green2
 
 @Composable
 fun LifeMapApp(viewModel: MemoryViewModel) {
     val navController = rememberNavController()
-
-    // Osserviamo dove si trova l'utente per decidere se mostrare la barra
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    // Lista delle pagine che vogliamo nella barra in basso
+    val view = LocalView.current
+    SideEffect {
+        val window = (view.context as Activity).window
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+    }
+
     val items = listOf(
         Screen.Map,
         Screen.List,
@@ -31,21 +45,29 @@ fun LifeMapApp(viewModel: MemoryViewModel) {
         Screen.Settings
     )
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        floatingActionButtonPosition = FabPosition.Start,
-        // Mostriamo la barra solo se NON siamo nel Login
-        bottomBar = {
-            if (currentDestination?.route != Screen.Login.route) {
-                LifeMapBottomBar(navController, currentDestination, items)
-            }
-        }
-    ) { innerPadding ->
+    val showBottomBar = currentDestination?.route != Screen.Login.route
+
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        // NavGraph a tutto schermo, nessun padding
         LifeMapNavGraph(
             navController = navController,
             viewModel = viewModel,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.fillMaxSize()
         )
+
+        // Bottom bar floating, sovrapposta in basso
+        if (showBottomBar) {
+            LifeMapBottomBar(
+                navController = navController,
+                currentDestination = currentDestination,
+                items = items,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                    .navigationBarsPadding()
+            )
+        }
     }
 }
 
@@ -53,24 +75,54 @@ fun LifeMapApp(viewModel: MemoryViewModel) {
 private fun LifeMapBottomBar(
     navController: NavHostController,
     currentDestination: NavDestination?,
-    items: List<Screen>
+    items: List<Screen>,
+    modifier: Modifier = Modifier
 ) {
-    NavigationBar {
-        items.forEach { screen ->
-            NavigationBarItem(
-                icon = { Icon(screen.icon!!, contentDescription = screen.label) },
-                label = { Text(screen.label!!) },
-                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                onClick = {
-                    navController.navigate(screen.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+        tonalElevation = 4.dp,
+        shadowElevation = 20.dp
+    ) {
+        NavigationBar(
+            containerColor = Color.Transparent,
+            tonalElevation = 0.dp
+        ) {
+            items.forEach { screen ->
+                val selected =
+                    currentDestination?.hierarchy?.any { it.route == screen.route } == true
+
+                NavigationBarItem(
+                    icon = {
+                        Icon(
+                            imageVector = screen.icon!!,
+                            contentDescription = screen.label,
+                            tint = if (selected) Green2 else Color.Gray.copy(alpha = 0.6f)
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = screen.label!!,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (selected) Color.Black else Color.Gray
+                        )
+                    },
+                    selected = selected,
+                    onClick = {
+                        navController.navigate(screen.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                }
-            )
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        indicatorColor = Green2.copy(alpha = 0.2f)
+                    )
+                )
+            }
         }
     }
 }
