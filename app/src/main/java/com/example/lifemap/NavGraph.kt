@@ -12,6 +12,7 @@ import com.example.lifemap.ui.screens.ListScreen
 import com.example.lifemap.ui.screens.LoginScreen
 import com.example.lifemap.ui.screens.map.MapScreen
 import com.example.lifemap.ui.screens.ProfileScreen
+import com.example.lifemap.ui.screens.RegistrationScreen
 import com.example.lifemap.ui.Screen
 import com.example.lifemap.ui.screens.SettingsScreen
 import com.example.lifemap.ui.MemoryViewModel
@@ -42,5 +43,7 @@ fun LifeMapNavGraph(
             val memoryId = backStackEntry.arguments?.getInt("memoryId")
             DetailScreen(memoryId, navController)
         }
+
+        composable(Screen.Registration.route) { RegistrationScreen(navController = navController)}
     }
 }

@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +25,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,14 +38,32 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.lifemap.ui.LoginState
+import com.example.lifemap.ui.LoginViewModel
 import com.example.lifemap.ui.Screen
+import androidx.compose.runtime.collectAsState
 
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(
+    navController: NavController,
+    vm: LoginViewModel = viewModel()
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
+
+    val state by vm.state.collectAsState()
+
+    LaunchedEffect(state) {
+        if (state is LoginState.Success) {
+            vm.resetState()
+            navController.navigate(Screen.Map.route) {
+                popUpTo(Screen.Login.route) { inclusive = true }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -76,17 +97,33 @@ fun LoginScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (state is LoginState.Error) {
+            Text(
+                text = (state as LoginState.Error).message,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = {
-                navController.navigate(Screen.Map.route) {
-                    popUpTo(Screen.Login.route) { inclusive = true }
-                }
-            },
+            onClick = { vm.login(email, password) },
+            enabled = state !is LoginState.Loading,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Accedi")
+            if (state is LoginState.Loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Text("Accedi")
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -118,6 +155,10 @@ fun LoginScreen(navController: NavController) {
         ) {
             Icon(Icons.Default.Fingerprint, contentDescription = "Biometria", modifier = Modifier.padding(end = 8.dp))
             Text("Usa Dati Biometrici")
+        }
+
+        Button(onClick = { navController.navigate(Screen.Registration.route) }) {
+            Text("Registrati")
         }
     }
 }

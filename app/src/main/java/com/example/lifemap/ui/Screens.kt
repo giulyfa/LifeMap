@@ -17,4 +17,7 @@ sealed class Screen(val route: String, val label: String? = null, val icon: Imag
     object Detail : Screen("detail/{memoryId}") {
         fun createRoute(memoryId: Int) = "detail/$memoryId"
     }
+
+    object Registration : Screen("registration")
+
 }
