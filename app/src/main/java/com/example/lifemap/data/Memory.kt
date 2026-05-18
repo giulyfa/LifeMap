@@ -22,5 +22,6 @@ data class Memory(
     val longitude: Double,
     val address: String,
     val category: MemoryCategory,
-    val imagePath: String? = null // Il "percorso" della foto scattata (opzionale)
+    val imagePath: String? = null,
+    val isFavorite: Boolean = false
 )

@@ -26,4 +26,8 @@ interface MemoryDao {
     // Filtra i ricordi per categoria
     @Query("SELECT * FROM memories WHERE category = :category ORDER BY date DESC")
     fun getMemoriesByCategory(category: MemoryCategory): Flow<List<Memory>>
+
+    // Aggiungi questa riga nel tuo MemoryDao
+    @Update
+    suspend fun updateMemory(memory: Memory)
 }

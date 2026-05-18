@@ -8,6 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.TurnedInNot
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -15,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -54,10 +57,8 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
                 .padding(innerPadding)
         ) {
             if (memories.isEmpty()) {
-                // STATO VUOTO: Se non ci sono ricordi nel DB
                 EmptyState()
             } else {
-                // LISTA DEI RICORDI
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -66,7 +67,11 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
                     items(memories) { memory ->
                         MemoryCard(
                             memory = memory,
-                            onClick = { navController.navigate("detail_screen/${memory.id}") })
+                            // QUI APRIAMO IL DETTAGLIO
+                            onClick = { navController.navigate("detail_screen/${memory.id}") },
+                            // QUI SALVIAMO LA STELLA USANDO IL VIEWMODEL
+                            onFavoriteClick = { viewModel.toggleFavorite(memory) }
+                        )
                     }
                 }
             }
@@ -74,15 +79,19 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MemoryCard(memory: Memory, onClick: () -> Unit) {
-    // Formattiamo il timestamp in una data leggibile (es: 18 Mag 2026, 17:30)
+fun MemoryCard(
+    memory: Memory,
+    onClick: () -> Unit,
+    onFavoriteClick: () -> Unit // IL PONTE PER LA STELLA
+) {
     val formattedDate = remember(memory.date) {
         SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(Date(memory.date))
     }
 
     OutlinedCard(
-        onClick = onClick,
+        onClick = onClick, // IL CLICK PER APRIRE LA SCHEDA
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.outlinedCardColors(
@@ -98,7 +107,6 @@ fun MemoryCard(memory: Memory, onClick: () -> Unit) {
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Riga superiore: Titolo e Categoria
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -114,16 +122,26 @@ fun MemoryCard(memory: Memory, onClick: () -> Unit) {
                     overflow = TextOverflow.Ellipsis
                 )
 
-                // Tag Categoria minimalista
-                Text(
-                    text = memory.category.name,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Green2
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = memory.category.name,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Green2
+                    )
+
+                    // IL PULSANTE DELLA STELLA
+                    IconButton(onClick = onFavoriteClick) {
+                        Icon(
+                            imageVector = if (memory.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
+                            contentDescription = "Preferito",
+                            tint = if (memory.isFavorite) Color(0xFFFFC107) else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
             }
 
-            // Data dell'evento
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -141,7 +159,6 @@ fun MemoryCard(memory: Memory, onClick: () -> Unit) {
                 )
             }
 
-            // Indirizzo stradale
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)

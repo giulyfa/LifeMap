@@ -3,10 +3,13 @@ package com.example.lifemap.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -33,6 +36,21 @@ fun DetailScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Torna indietro")
+                    }
+                },
+                // LE AZIONI IN ALTO A DESTRA
+                actions = {
+                    memory?.let { currentMemory ->
+                        IconButton(onClick = {
+                            viewModel.toggleFavorite(currentMemory)
+                            memory = currentMemory.copy(isFavorite = !currentMemory.isFavorite)
+                        }) {
+                            Icon(
+                                imageVector = if (currentMemory.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
+                                contentDescription = "Preferito",
+                                tint = if (currentMemory.isFavorite) Color(0xFFFFC107) else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

@@ -4,7 +4,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -70,16 +73,34 @@ fun AddMemoryBottomSheet(
             }
 
             // HEADER
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = "Nuovo ricordo",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Nuovo ricordo",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+                    )
+
+                    // IL PULSANTE PREFERITO
+                    IconToggleButton(
+                        checked = uiState.isFavorite,
+                        onCheckedChange = { viewModel.updateFavorite(it) }
+                    ) {
+                        Icon(
+                            imageVector = if (uiState.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
+                            contentDescription = "Preferito",
+                            tint = if (uiState.isFavorite) Color(0xFFFFC107) else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
                 val currentTime = remember { SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date()) }
                 Text(
                     text = "Oggi • $currentTime",

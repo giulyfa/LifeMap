@@ -21,7 +21,8 @@ data class MemoryUiState(
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val address: String = "",
-    val imagePath: String? = null
+    val imagePath: String? = null,
+    val isFavorite: Boolean = false
 )
 
 class MemoryViewModel(private val memoryDao: MemoryDao) : ViewModel() {
@@ -68,12 +69,24 @@ class MemoryViewModel(private val memoryDao: MemoryDao) : ViewModel() {
             longitude = currentState.longitude,
             address = currentState.address,
             category = currentState.category,
-            imagePath = currentState.imagePath
+            imagePath = currentState.imagePath,
+            isFavorite = currentState.isFavorite
         )
 
         viewModelScope.launch {
             memoryDao.insertMemory(newMemory)
             _uiState.value = MemoryUiState()
+        }
+    }
+
+    fun updateFavorite(isFavorite: Boolean) {
+        _uiState.update { it.copy(isFavorite = isFavorite) }
+    }
+
+    fun toggleFavorite(memory: Memory) {
+        viewModelScope.launch {
+            val updatedMemory = memory.copy(isFavorite = !memory.isFavorite)
+            memoryDao.updateMemory(updatedMemory)
         }
     }
 
