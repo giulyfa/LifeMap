@@ -146,9 +146,7 @@ fun LoginScreen(
         FilledTonalButton(
             onClick = {
                 authenticateWithBiometrics(context) {
-                    navController.navigate(Screen.Map.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
-                    }
+                    vm.loginWithBiometrics()
                 }
             },
             modifier = Modifier.fillMaxWidth()

@@ -23,6 +23,7 @@ fun RegistrationScreen(
     var cognome by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
 
     val state by vm.state.collectAsState()
 
@@ -90,6 +91,16 @@ fun RegistrationScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Conferma Password") },
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth()
+        )
+
         if (state is RegistrationState.Error) {
             Text(
                 text = (state as RegistrationState.Error).message,
@@ -100,7 +111,7 @@ fun RegistrationScreen(
         }
 
         Button(
-            onClick = { vm.register(nome, cognome, email, password) },
+            onClick = { vm.register(nome, cognome, email, password, confirmPassword) },
             enabled = state !is RegistrationState.Loading,
             modifier = Modifier.fillMaxWidth()
         ) {

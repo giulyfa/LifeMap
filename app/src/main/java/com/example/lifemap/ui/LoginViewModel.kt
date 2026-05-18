@@ -22,6 +22,24 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val _state = MutableStateFlow<LoginState>(LoginState.Idle)
     val state: StateFlow<LoginState> = _state
 
+    fun loginWithBiometrics() {
+        viewModelScope.launch {
+            _state.value = LoginState.Loading
+            try {
+                val user = dao.getMostRecentLoginUser()
+
+                if (user != null) {
+                    dao.updateLastLogin(user.id, System.currentTimeMillis())
+                    _state.value = LoginState.Success
+                } else {
+                    _state.value = LoginState.Error("Nessun utente recente. Accedi con email e password la prima volta.")
+                }
+            } catch (e: Exception) {
+                _state.value = LoginState.Error("Errore durante l'accesso biometrico $e")
+            }
+        }
+    }
+
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
             _state.value = LoginState.Error("Compila tutti i campi")

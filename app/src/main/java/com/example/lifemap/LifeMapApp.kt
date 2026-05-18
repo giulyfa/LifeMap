@@ -45,7 +45,7 @@ fun LifeMapApp(viewModel: MemoryViewModel) {
         Screen.Settings
     )
 
-    val showBottomBar = currentDestination?.route != Screen.Login.route
+    val showBottomBar = currentDestination?.route !in listOf(Screen.Login.route, Screen.Registration.route)       && currentDestination?.route != Screen.Registration.route
 
     Box(modifier = Modifier.fillMaxSize()) {
 

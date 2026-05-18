@@ -23,8 +23,8 @@ class RegistrationViewModel(application: Application) : AndroidViewModel(applica
     private val _state = MutableStateFlow<RegistrationState>(RegistrationState.Idle)
     val state: StateFlow<RegistrationState> = _state
 
-    fun register(nome: String, cognome: String, email: String, password: String) {
-        if (nome.isBlank() || cognome.isBlank() || email.isBlank() || password.isBlank()) {
+    fun register(nome: String, cognome: String, email: String, password: String, confirmPassword: String) {
+        if (nome.isBlank() || cognome.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
             _state.value = RegistrationState.Error("Tutti i campi sono obbligatori")
             return
         }
@@ -34,6 +34,11 @@ class RegistrationViewModel(application: Application) : AndroidViewModel(applica
         }
         if (password.length < 6) {
             _state.value = RegistrationState.Error("La password deve avere almeno 6 caratteri")
+            return
+        }
+
+        if (password != confirmPassword) {
+            _state.value = RegistrationState.Error("Le password non coincidono")
             return
         }
 
