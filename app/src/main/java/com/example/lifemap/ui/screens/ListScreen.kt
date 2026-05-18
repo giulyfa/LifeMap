@@ -1,38 +1,58 @@
 package com.example.lifemap.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Place
-import androidx.compose.material.icons.outlined.TurnedInNot
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.TurnedInNot
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lifemap.data.Memory
 import com.example.lifemap.ui.MemoryViewModel
+import com.example.lifemap.ui.theme.Gold
 import com.example.lifemap.ui.theme.Green2
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
     val memories by viewModel.allMemories.collectAsState()
+
+    val categories = remember(memories) {
+        listOf("Tutti") + memories.map { it.category.name }.distinct().sorted()
+    }
+
+    var selectedCategory by remember { mutableStateOf("Tutti") }
+
+    val filteredMemories = remember(memories, selectedCategory) {
+        if (selectedCategory == "Tutti") {
+            memories
+        } else {
+            memories.filter { it.category.name == selectedCategory }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -45,31 +65,59 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground
+                    containerColor = Green2,
+                    titleContentColor = Color.White
                 )
             )
         }
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
         ) {
+            AnimatedVisibility(
+                visible = memories.isNotEmpty(),
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(categories) { category ->
+                        FilterChip(
+                            selected = selectedCategory == category,
+                            onClick = { selectedCategory = category },
+                            label = { Text(text = category, fontWeight = FontWeight.Medium) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Gold,
+                                selectedLabelColor = Color.Black,
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            shape = RoundedCornerShape(100),
+                            border = null
+                        )
+                    }
+                }
+            }
+
             if (memories.isEmpty()) {
                 EmptyState()
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 80.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(memories) { memory ->
+                    items(filteredMemories, key = { it.id }) { memory ->
                         MemoryCard(
                             memory = memory,
-                            // QUI APRIAMO IL DETTAGLIO
+                            modifier = Modifier.animateItem(),
                             onClick = { navController.navigate("detail_screen/${memory.id}") },
-                            // QUI SALVIAMO LA STELLA USANDO IL VIEWMODEL
                             onFavoriteClick = { viewModel.toggleFavorite(memory) }
                         )
                     }
@@ -83,99 +131,95 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
 @Composable
 fun MemoryCard(
     memory: Memory,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    onFavoriteClick: () -> Unit // IL PONTE PER LA STELLA
+    onFavoriteClick: () -> Unit
 ) {
     val formattedDate = remember(memory.date) {
         SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(Date(memory.date))
     }
 
-    OutlinedCard(
-        onClick = onClick, // IL CLICK PER APRIRE LA SCHEDA
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+    ElevatedCard(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.elevatedCardColors(
+            // BEIGIOLINO CHIARO
+            containerColor = Color(0xFFFFFEF9)
         ),
-        border = CardDefaults.outlinedCardBorder().copy(
-            brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outlineVariant)
-        )
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
     ) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(20.dp)
                 .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
-                Text(
-                    text = memory.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                Column(
                     modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Text(
-                        text = memory.category.name,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Green2
+                        text = memory.title,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
 
-                    // IL PULSANTE DELLA STELLA
-                    IconButton(onClick = onFavoriteClick) {
-                        Icon(
-                            imageVector = if (memory.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-                            contentDescription = "Preferito",
-                            tint = if (memory.isFavorite) Color(0xFFFFC107) else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Green2.copy(alpha = 0.12f))
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                    ) {
+                        Text(
+                            text = memory.category.name,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Green2
                         )
                     }
                 }
+
+                IconButton(
+                    onClick = onFavoriteClick,
+                    modifier = Modifier.offset(x = 10.dp, y = (-10).dp)
+                ) {
+                    Icon(
+                        imageVector = if (memory.isFavorite) Icons.Filled.Star else Icons.Filled.StarBorder,
+                        contentDescription = "Preferito",
+                        tint = if (memory.isFavorite) Color(0xFFFFC107) else Color.Gray,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
             }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.CalendarMonth,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(14.dp)
-                )
-                Text(
-                    text = formattedDate,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            HorizontalDivider(Modifier, thickness = 1.dp, color = Color(0xFFE0E0E0))
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Place,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(14.dp)
-                )
-                Text(
-                    text = memory.address,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.CalendarMonth,
+                        contentDescription = null,
+                        tint = Gold,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = formattedDate,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF424242)
+                    )
+                }
             }
         }
     }
@@ -194,12 +238,12 @@ fun EmptyState() {
             imageVector = Icons.Outlined.TurnedInNot,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-            modifier = Modifier.size(64.dp)
+            modifier = Modifier.size(72.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Nessun ricordo salvato",
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -208,7 +252,7 @@ fun EmptyState() {
             text = "Esplora la mappa e premi il tasto + per fissare il tuo primo momento speciale.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            textAlign = TextAlign.Center
         )
     }
 }
