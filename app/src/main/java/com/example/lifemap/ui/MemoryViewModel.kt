@@ -7,8 +7,10 @@ import com.example.lifemap.data.Memory
 import com.example.lifemap.data.MemoryCategory
 import com.example.lifemap.data.MemoryDao
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -27,6 +29,14 @@ class MemoryViewModel(private val memoryDao: MemoryDao) : ViewModel() {
     private val _uiState = MutableStateFlow(MemoryUiState())
     val uiState: StateFlow<MemoryUiState> = _uiState.asStateFlow()
 
+    // IL PONTE VERSO LA MAPPA: Leggiamo tutti i ricordi dal database in tempo reale
+    val allMemories: StateFlow<List<Memory>> = memoryDao.getAllMemories()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     // Funzioni per aggiornare l'interfaccia (chiamate dai TextField del BottomSheet)
     fun updateTitle(newTitle: String) {
         _uiState.update { it.copy(title = newTitle) }
@@ -38,6 +48,10 @@ class MemoryViewModel(private val memoryDao: MemoryDao) : ViewModel() {
 
     fun updateLocation(lat: Double, lng: Double, address: String) {
         _uiState.update { it.copy(latitude = lat, longitude = lng, address = address) }
+    }
+
+    fun updateCategory(newCategory: MemoryCategory) {
+        _uiState.update { it.copy(category = newCategory) }
     }
 
     // Funzione per salvare definitivamente nel database
@@ -65,10 +79,6 @@ class MemoryViewModel(private val memoryDao: MemoryDao) : ViewModel() {
             // Dopo aver salvato, resettiamo lo stato così il BottomSheet è pulito per la prossima volta
             _uiState.value = MemoryUiState()
         }
-    }
-
-    fun updateCategory(newCategory: MemoryCategory) {
-        _uiState.update { it.copy(category = newCategory) }
     }
 
     // Factory per creare il ViewModel

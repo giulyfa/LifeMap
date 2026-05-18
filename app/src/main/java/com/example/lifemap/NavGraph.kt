@@ -10,7 +10,7 @@ import androidx.navigation.navArgument
 import com.example.lifemap.ui.screens.DetailScreen
 import com.example.lifemap.ui.screens.ListScreen
 import com.example.lifemap.ui.screens.LoginScreen
-import com.example.lifemap.ui.screens.MapScreen
+import com.example.lifemap.ui.screens.map.MapScreen
 import com.example.lifemap.ui.screens.ProfileScreen
 import com.example.lifemap.ui.Screen
 import com.example.lifemap.ui.screens.SettingsScreen
