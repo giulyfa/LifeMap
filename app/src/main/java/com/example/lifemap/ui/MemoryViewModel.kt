@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 data class MemoryUiState(
     val title: String = "",
     val description: String = "",
-    val category: MemoryCategory = MemoryCategory.ALTRO,
+    val category: MemoryCategory = MemoryCategory.VARIE,
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val address: String = "",
@@ -29,7 +29,6 @@ class MemoryViewModel(private val memoryDao: MemoryDao) : ViewModel() {
     private val _uiState = MutableStateFlow(MemoryUiState())
     val uiState: StateFlow<MemoryUiState> = _uiState.asStateFlow()
 
-    // IL PONTE VERSO LA MAPPA: Leggiamo tutti i ricordi dal database in tempo reale
     val allMemories: StateFlow<List<Memory>> = memoryDao.getAllMemories()
         .stateIn(
             scope = viewModelScope,
@@ -37,7 +36,7 @@ class MemoryViewModel(private val memoryDao: MemoryDao) : ViewModel() {
             initialValue = emptyList()
         )
 
-    // Funzioni per aggiornare l'interfaccia (chiamate dai TextField del BottomSheet)
+    // Funzioni per aggiornare l'interfaccia
     fun updateTitle(newTitle: String) {
         _uiState.update { it.copy(title = newTitle) }
     }
@@ -54,17 +53,17 @@ class MemoryViewModel(private val memoryDao: MemoryDao) : ViewModel() {
         _uiState.update { it.copy(category = newCategory) }
     }
 
-    // Funzione per salvare definitivamente nel database
+    // Funzione per salvare nel database
     fun saveMemory() {
         val currentState = _uiState.value
 
-        // Evitiamo di salvare se il titolo è vuoto
+        // Non salva se il titolo è vuoto
         if (currentState.title.isBlank()) return
 
         val newMemory = Memory(
             title = currentState.title,
             description = currentState.description,
-            date = System.currentTimeMillis(), // Salva la data attuale
+            date = System.currentTimeMillis(),
             latitude = currentState.latitude,
             longitude = currentState.longitude,
             address = currentState.address,
@@ -72,13 +71,14 @@ class MemoryViewModel(private val memoryDao: MemoryDao) : ViewModel() {
             imagePath = currentState.imagePath
         )
 
-        // Lanciamo una coroutine per scrivere nel database senza bloccare l'interfaccia
         viewModelScope.launch {
             memoryDao.insertMemory(newMemory)
-
-            // Dopo aver salvato, resettiamo lo stato così il BottomSheet è pulito per la prossima volta
             _uiState.value = MemoryUiState()
         }
+    }
+
+    suspend fun getMemoryById(id: Int): Memory? {
+        return memoryDao.getMemoryById(id)
     }
 
     // Factory per creare il ViewModel

@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
@@ -47,7 +46,7 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     val memories by viewModel.allMemories.collectAsState()
 
-    // Variabili per l'interfaccia (mostrare/nascondere)
+    // Variabili per l'interfaccia
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var isDropdownExpanded by remember { mutableStateOf(false) }
@@ -83,9 +82,6 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
             zoomControlsEnabled = false
         )
     }
-
-    val density = LocalDensity.current
-    val pinSizePx = with(density) { 24.dp.toPx().toInt() }
 
     Box(modifier = Modifier.fillMaxSize()) {
         GoogleMap(
@@ -222,7 +218,7 @@ fun getPinColorForCategory(category: MemoryCategory): BitmapDescriptor {
         MemoryCategory.AMICI  -> 340f  // rosa
         MemoryCategory.CIBO   -> 30f   // arancione
         MemoryCategory.SPORT  -> 210f  // blu
-        MemoryCategory.ALTRO  -> 270f  // viola
+        MemoryCategory.VARIE  -> 270f  // viola
     }
     return BitmapDescriptorFactory.defaultMarker(hue)
 }

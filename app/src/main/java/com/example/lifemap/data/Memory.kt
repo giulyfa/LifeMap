@@ -8,7 +8,7 @@ enum class MemoryCategory {
     CIBO,
     AMICI,
     SPORT,
-    ALTRO
+    VARIE
 }
 
 @Entity(tableName = "memories")

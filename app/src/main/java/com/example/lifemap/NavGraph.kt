@@ -32,16 +32,24 @@ fun LifeMapNavGraph(
 
         composable(Screen.Map.route) { MapScreen(navController, viewModel) }
 
-        composable(Screen.List.route) { ListScreen(navController) }
+        composable(Screen.List.route) { ListScreen(
+            navController = navController,
+            viewModel = viewModel
+        ) }
         composable(Screen.Profile.route) { ProfileScreen(navController) }
         composable(Screen.Settings.route) { SettingsScreen(navController) }
 
         composable(
-            route = Screen.Detail.route,
+            route = "detail_screen/{memoryId}",
             arguments = listOf(navArgument("memoryId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val memoryId = backStackEntry.arguments?.getInt("memoryId")
-            DetailScreen(memoryId, navController)
+            val memoryId = backStackEntry.arguments?.getInt("memoryId") ?: return@composable
+
+            DetailScreen(
+                memoryId = memoryId,
+                viewModel = viewModel,
+                navController = navController
+            )
         }
 
         composable(Screen.Registration.route) { RegistrationScreen(navController = navController)}

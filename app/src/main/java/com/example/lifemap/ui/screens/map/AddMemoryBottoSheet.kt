@@ -29,7 +29,6 @@ fun AddMemoryBottomSheet(
     sheetState: SheetState,
     onDismiss: () -> Unit
 ) {
-    // Lo stato del menu a tendina vive solo qui, perché serve solo all'interfaccia visiva
     var isDropdownExpanded by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
@@ -45,7 +44,7 @@ fun AddMemoryBottomSheet(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
 
-            // 1. CHIP DELL'INDIRIZZO
+            // CHIP DELL'INDIRIZZO
             Surface(
                 shape = RoundedCornerShape(50),
                 color = Color.Transparent,
@@ -70,7 +69,7 @@ fun AddMemoryBottomSheet(
                 }
             }
 
-            // 2. HEADER
+            // HEADER
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -89,7 +88,7 @@ fun AddMemoryBottomSheet(
                 )
             }
 
-            // 3. CAMPO TITOLO
+            // CAMPO TITOLO
             MemoryFormField(
                 label = "TITOLO",
                 value = uiState.title,
@@ -97,7 +96,7 @@ fun AddMemoryBottomSheet(
                 placeholder = "Dai un nome a questo momento..."
             )
 
-            // 4. CAMPO DESCRIZIONE
+            // CAMPO DESCRIZIONE
             MemoryFormField(
                 label = "NOTE",
                 value = uiState.description,
@@ -107,7 +106,7 @@ fun AddMemoryBottomSheet(
                 singleLine = false
             )
 
-            // 5. DROPDOWN CATEGORIA
+            // CATEGORIA
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -153,11 +152,11 @@ fun AddMemoryBottomSheet(
                 }
             }
 
-            // 6. PULSANTE SALVA
+            // PULSANTE SALVA
             OutlinedButton(
                 onClick = {
                     viewModel.saveMemory()
-                    onDismiss() // Chiudiamo il bottom sheet dopo aver salvato!
+                    onDismiss()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -177,7 +176,6 @@ fun AddMemoryBottomSheet(
     }
 }
 
-// Spostiamo qui anche le funzioni di supporto visivo, così non ingombrano la mappa!
 @Composable
 fun MemoryFormField(
     label: String,
