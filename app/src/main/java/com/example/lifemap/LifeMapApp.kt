@@ -27,7 +27,11 @@ import com.example.lifemap.ui.Screen
 import com.example.lifemap.ui.theme.Green2
 
 @Composable
-fun LifeMapApp(viewModel: MemoryViewModel) {
+fun LifeMapApp(
+    viewModel: MemoryViewModel,
+    isDarkTheme: Boolean,
+    onThemeToggle: (Boolean) -> Unit
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -45,18 +49,18 @@ fun LifeMapApp(viewModel: MemoryViewModel) {
         Screen.Settings
     )
 
-    val showBottomBar = currentDestination?.route !in listOf(Screen.Login.route, Screen.Registration.route)       && currentDestination?.route != Screen.Registration.route
+    val showBottomBar = currentDestination?.route !in listOf(Screen.Login.route, Screen.Registration.route)
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // NavGraph a tutto schermo, nessun padding
         LifeMapNavGraph(
             navController = navController,
             viewModel = viewModel,
+            isDarkTheme = isDarkTheme,
+            onThemeToggle = onThemeToggle,
             modifier = Modifier.fillMaxSize()
         )
 
-        // Bottom bar floating, sovrapposta in basso
         if (showBottomBar) {
             LifeMapBottomBar(
                 navController = navController,
@@ -98,14 +102,14 @@ private fun LifeMapBottomBar(
                         Icon(
                             imageVector = screen.icon!!,
                             contentDescription = screen.label,
-                            tint = if (selected) Green2 else Color.Gray.copy(alpha = 0.6f)
+                            tint = if (selected) Green2 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )
                     },
                     label = {
                         Text(
                             text = screen.label!!,
                             style = MaterialTheme.typography.labelSmall,
-                            color = if (selected) Color.Black else Color.Gray
+                            color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
                     selected = selected,

@@ -23,7 +23,6 @@ import androidx.navigation.NavController
 import com.example.lifemap.R
 import com.example.lifemap.data.MemoryCategory
 import com.example.lifemap.ui.MemoryViewModel
-import com.example.lifemap.ui.theme.Green2
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptor
@@ -42,16 +41,12 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
     val scope = rememberCoroutineScope()
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    // LEGGIAMO LO STATO DAL VIEWMODEL
     val uiState by viewModel.uiState.collectAsState()
     val memories by viewModel.allMemories.collectAsState()
 
-    // Variabili per l'interfaccia
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var isDropdownExpanded by remember { mutableStateOf(false) }
 
-    // Variabili per i permessi e la mappa
     var hasLocationPermission by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -73,8 +68,10 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
         position = CameraPosition.fromLatLngZoom(startingLocation, 14f)
     }
     val mapProperties = remember(hasLocationPermission) {
-        MapProperties(isMyLocationEnabled = hasLocationPermission,
-            mapStyleOptions = MapStyleOptions.loadRawResourceStyle(context, R.raw.map_style))
+        MapProperties(
+            isMyLocationEnabled = hasLocationPermission,
+            mapStyleOptions = MapStyleOptions.loadRawResourceStyle(context, R.raw.map_style)
+        )
     }
     val uiSettings = remember {
         MapUiSettings(
@@ -102,6 +99,7 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
         }
 
         if (hasLocationPermission) {
+            // PULSANTE CENTRA GPS (Coordinato col Tema)
             FloatingActionButton(
                 onClick = {
                     val fineLocationPermission = ContextCompat.checkSelfPermission(
@@ -127,12 +125,13 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(bottom = 154.dp, end = 16.dp),
-                containerColor = Green2,
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.surface
             ) {
                 Icon(Icons.Default.MyLocation, contentDescription = "Centra GPS")
             }
 
+            // PULSANTE AGGIUNGI RICORDO
             FloatingActionButton(
                 onClick = {
                     val fineLocationPermission = ContextCompat.checkSelfPermission(
@@ -192,8 +191,8 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(bottom = 154.dp, start = 16.dp),
-                containerColor = Green2,
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.surface
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Aggiungi Ricordo")
             }
@@ -211,7 +210,6 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
     }
 }
 
-// FUNZIONI DI SUPPORTO
 fun getPinColorForCategory(category: MemoryCategory): BitmapDescriptor {
     val hue = when (category) {
         MemoryCategory.VIAGGI -> 120f  // verde

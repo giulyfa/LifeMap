@@ -1,6 +1,5 @@
 package com.example.lifemap.ui.screens.map
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -23,8 +22,6 @@ import androidx.compose.ui.unit.sp
 import com.example.lifemap.data.MemoryCategory
 import com.example.lifemap.ui.MemoryUiState
 import com.example.lifemap.ui.MemoryViewModel
-import com.example.lifemap.ui.theme.Gold
-import com.example.lifemap.ui.theme.Green2
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -43,8 +40,8 @@ fun AddMemoryBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color(0xFFFFFEF9),
-        dragHandle = { BottomSheetDefaults.DragHandle(color = Color.Gray.copy(alpha = 0.5f)) }
+        containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) }
     ) {
         Column(
             modifier = Modifier
@@ -55,10 +52,11 @@ fun AddMemoryBottomSheet(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
+            // CHIP DELL'INDIRIZZO (Colori Adattivi)
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(Green2.copy(alpha = 0.12f))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
                     .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Row(
@@ -67,13 +65,13 @@ fun AddMemoryBottomSheet(
                     Icon(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = "Posizione",
-                        tint = Green2,
+                        tint = MaterialTheme.colorScheme.primary, // Verde/Gold dinamico
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = uiState.address,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Medium
                     )
@@ -92,7 +90,7 @@ fun AddMemoryBottomSheet(
                 ) {
                     Text(
                         text = "Nuovo ricordo",
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
                     )
 
@@ -103,7 +101,7 @@ fun AddMemoryBottomSheet(
                         Icon(
                             imageVector = if (uiState.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
                             contentDescription = "Preferito",
-                            tint = if (uiState.isFavorite) Color(0xFFFFC107) else Color.Gray,
+                            tint = if (uiState.isFavorite) Color(0xFFFFC107) else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(28.dp)
                         )
                     }
@@ -112,7 +110,7 @@ fun AddMemoryBottomSheet(
                 val currentTime = remember { SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date()) }
                 Text(
                     text = "Oggi • $currentTime",
-                    color = Color(0xFF555555),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                     style = MaterialTheme.typography.labelMedium
                 )
             }
@@ -143,7 +141,7 @@ fun AddMemoryBottomSheet(
                 Text(
                     text = "CATEGORIA",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFF555555),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     letterSpacing = 1.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -167,7 +165,7 @@ fun AddMemoryBottomSheet(
                     ExposedDropdownMenu(
                         expanded = isDropdownExpanded,
                         onDismissRequest = { isDropdownExpanded = false },
-                        containerColor = Color(0xFFFFFEF9)
+                        containerColor = MaterialTheme.colorScheme.surface // Sfondo menu coerente
                     ) {
                         MemoryCategory.entries.forEach { category ->
                             DropdownMenuItem(
@@ -175,7 +173,7 @@ fun AddMemoryBottomSheet(
                                     Text(
                                         text = category.name,
                                         style = MaterialTheme.typography.bodyLarge,
-                                        color = Color.Black
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 },
                                 onClick = {
@@ -201,8 +199,8 @@ fun AddMemoryBottomSheet(
                     .height(54.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Green2,
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary, // Dinamico!
+                    contentColor = MaterialTheme.colorScheme.onPrimary  // Testo contrastato correttamente
                 )
             ) {
                 Icon(
@@ -235,14 +233,14 @@ fun MemoryFormField(
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = Color(0xFF555555),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             letterSpacing = 1.sp,
             fontWeight = FontWeight.Bold
         )
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(placeholder, color = Color.Gray.copy(alpha = 0.7f)) },
+            placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
             modifier = modifier.fillMaxWidth(),
             singleLine = singleLine,
             shape = RoundedCornerShape(12.dp),
@@ -253,12 +251,12 @@ fun MemoryFormField(
 
 @Composable
 fun dynamicTextFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = Green2,
-    focusedLabelColor = Green2,
-    cursorColor = Green2,
-    unfocusedBorderColor = Color(0xFFE0E0E0),
-    focusedTextColor = Color.Black,
-    unfocusedTextColor = Color.Black,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    cursorColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
     focusedContainerColor = Color.Transparent,
     unfocusedContainerColor = Color.Transparent
 )

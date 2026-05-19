@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lifemap.data.Memory
 import com.example.lifemap.ui.MemoryViewModel
-import com.example.lifemap.ui.theme.Green2
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -38,7 +37,11 @@ fun DetailScreen(
         memory = viewModel.getMemoryById(memoryId)
     }
 
-    // Formattazione data (se il ricordo esiste)
+    // Rileviamo se siamo in Dark Mode leggendo i colori attuali del tema
+    val isDarkTheme = !MaterialTheme.colorScheme.background.colorsM3LightOrDarkCheck()
+    // Nota: Più semplicemente, controlliamo il colore del testo per sapere se siamo in dark mode
+    val textColor = MaterialTheme.colorScheme.onBackground
+
     val formattedDate = remember(memory?.date) {
         memory?.date?.let {
             SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.getDefault()).format(Date(it))
@@ -60,7 +63,8 @@ fun DetailScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Torna indietro",
-                            tint = Color.White
+                            // Se è Gold di notte, l'icona deve essere nera. Se è Verde di giorno, bianca.
+                            tint = if (textColor == Color.White) Color.Black else Color.White
                         )
                     }
                 },
@@ -73,15 +77,15 @@ fun DetailScreen(
                             Icon(
                                 imageVector = if (currentMemory.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
                                 contentDescription = "Preferito",
-                                tint = if (currentMemory.isFavorite) Color(0xFFFFC107) else Color.White,
+                                tint = if (currentMemory.isFavorite) Color(0xFFFFC107) else (if (textColor == Color.White) Color.Black else Color.White),
                                 modifier = Modifier.size(28.dp)
                             )
                         }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Green2,
-                    titleContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary, // Dinamico: Verde o Gold
+                    titleContentColor = if (textColor == Color.White) Color.Black else Color.White
                 )
             )
         }
@@ -90,31 +94,32 @@ fun DetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background) // Sfondo dell'app
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(innerPadding)
                     .padding(horizontal = 20.dp, vertical = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
+                // BADGE CATEGORIA DINAMICO
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Green2.copy(alpha = 0.12f))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
                         text = currentMemory.category.name,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Green2
+                        color = MaterialTheme.colorScheme.primary // Diventa Gold o Verde
                     )
                 }
 
-                // TITOLO
+                // TITOLO DIZIONARIO/DIARIO
                 Text(
                     text = currentMemory.title,
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onBackground
                 )
 
                 // BLOCCO METADATI
@@ -130,13 +135,13 @@ fun DetailScreen(
                         Icon(
                             imageVector = Icons.Outlined.CalendarMonth,
                             contentDescription = null,
-                            tint = Green2,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
                             text = formattedDate,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = Color(0xFF424242)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -148,41 +153,42 @@ fun DetailScreen(
                         Icon(
                             imageVector = Icons.Outlined.Place,
                             contentDescription = null,
-                            tint = Green2,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp).padding(top = 2.dp)
                         )
                         Text(
                             text = currentMemory.address,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = Color(0xFF424242)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
 
-                HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
 
-                // DESCRIZIONE
+                // DESCRIZIONE / NOTE
                 if (currentMemory.description.isNotBlank()) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
                             text = "Le tue note",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = MaterialTheme.colorScheme.onBackground
                         )
 
+                        // Card che passa da crema a scura di notte
                         ElevatedCard(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.elevatedCardColors(
-                                containerColor = Color(0xFFFFFEF9)
+                                containerColor = MaterialTheme.colorScheme.surface
                             ),
                             elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
                         ) {
                             Text(
                                 text = currentMemory.description,
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = Color(0xFF333333),
+                                color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.padding(16.dp)
                             )
                         }
@@ -196,8 +202,13 @@ fun DetailScreen(
                     .background(MaterialTheme.colorScheme.background),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Green2)
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         }
     }
+}
+
+private fun Color.colorsM3LightOrDarkCheck(): Boolean {
+    val luminance = 0.2126 * this.red + 0.7152 * this.green + 0.0722 * this.blue
+    return luminance > 0.5
 }

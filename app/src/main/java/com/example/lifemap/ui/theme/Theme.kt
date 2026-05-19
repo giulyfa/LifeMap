@@ -9,35 +9,41 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
+// PALETTE SCURA
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = Green2,
+    secondary = Gold,
+    background = Color(0xFF121212),
+    surface = Color(0xFF1E1E1E),
+    onBackground = Color(0xFFFFFFFF),
+    onSurface = Color(0xFFFFFFFF),
+    onPrimary = Color.Black,
+    onSecondary = Color.White,
+    outline = Color(0xFF333333),
+    outlineVariant = Color(0xFF444444)
 )
 
+// PALETTE CHIARA
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
+    primary = Green2,
+    secondary = Gold,
+    background = Color(0xFFFBF9F4),
+    surface = Color(0xFFFFFEF9),
     onBackground = Color(0xFF1C1B1F),
     onSurface = Color(0xFF1C1B1F),
-    */
+    onPrimary = Color.White,
+    onSecondary = Color.Black,
+    outline = Color(0xFFE0E0E0),
+    outlineVariant = Color(0xFFEEEEEE)
 )
 
 @Composable
 fun LifeMapTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

@@ -29,8 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.lifemap.data.Memory
 import com.example.lifemap.ui.MemoryViewModel
-import com.example.lifemap.ui.theme.Gold
-import com.example.lifemap.ui.theme.Green2
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -58,6 +56,9 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
         filteredMemories.groupBy { formatMonthYear(it.date) }
     }
 
+    // Usiamo il trucco del colore del testo per capire lo stato del tema (Chiaro/Scuro)
+    val isDarkTheme = MaterialTheme.colorScheme.onBackground == Color.White
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -69,8 +70,8 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Green2,
-                    titleContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary, // Dinamico: Verde o Gold
+                    titleContentColor = if (isDarkTheme) Color.Black else Color.White
                 )
             )
         }
@@ -92,13 +93,15 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(categories) { category ->
+                        val isSelected = selectedCategory == category
                         FilterChip(
-                            selected = selectedCategory == category,
+                            selected = isSelected,
                             onClick = { selectedCategory = category },
                             label = { Text(text = category, fontWeight = FontWeight.Medium) },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Gold,
-                                selectedLabelColor = Color.Black,
+                                // Colore di selezione: usa il secondary invertito o il primary del tema
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = if (isDarkTheme) Color.Black else Color.White,
                                 containerColor = MaterialTheme.colorScheme.surfaceVariant,
                                 labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             ),
@@ -114,7 +117,7 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 80.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 100.dp), // Alzato a 100.dp per stare sopra la BottomBar floating
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     memoriesGroupedByMonth.forEach { (monthYear, memoriesInMonth) ->
@@ -123,7 +126,7 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
                                 text = monthYear,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground,
+                                color = MaterialTheme.colorScheme.onBackground, // Dinamico: Bianco o Nero
                                 modifier = Modifier
                                     .padding(start = 4.dp, bottom = 4.dp)
                             )
@@ -161,7 +164,7 @@ fun MemoryCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = Color(0xFFFFFEF9)
+            containerColor = MaterialTheme.colorScheme.surface // Adattivo: crema di giorno, antracite di notte
         ),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
     ) {
@@ -184,22 +187,23 @@ fun MemoryCard(
                         text = memory.title,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface, // Dinamico: Nero o Bianco
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
 
+                    // Badge Categoria Adattivo
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(Green2.copy(alpha = 0.12f))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
                             .padding(horizontal = 10.dp, vertical = 5.dp)
                     ) {
                         Text(
                             text = memory.category.name,
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color = Green2
+                            color = MaterialTheme.colorScheme.primary // Diventa Gold o Verde
                         )
                     }
                 }
@@ -211,13 +215,14 @@ fun MemoryCard(
                     Icon(
                         imageVector = if (memory.isFavorite) Icons.Filled.Star else Icons.Filled.StarBorder,
                         contentDescription = "Preferito",
-                        tint = if (memory.isFavorite) Color(0xFFFFC107) else Gold,
+                        // Stella oro se selezionata, altrimenti colore neutro del tema
+                        tint = if (memory.isFavorite) Color(0xFFFFC107) else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(30.dp)
                     )
                 }
             }
 
-            HorizontalDivider(Modifier, thickness = 1.dp, color = Color(0xFFE0E0E0))
+            HorizontalDivider(Modifier, thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
 
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(
@@ -227,13 +232,13 @@ fun MemoryCard(
                     Icon(
                         imageVector = Icons.Outlined.CalendarMonth,
                         contentDescription = null,
-                        tint = Gold,
+                        tint = MaterialTheme.colorScheme.primary, // Icona coerente (Verde o Gold)
                         modifier = Modifier.size(18.dp)
                     )
                     Text(
                         text = formattedDate,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF424242)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

@@ -21,6 +21,8 @@ import com.example.lifemap.ui.MemoryViewModel
 fun LifeMapNavGraph(
     navController: NavHostController,
     viewModel: MemoryViewModel,
+    isDarkTheme: Boolean,
+    onThemeToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -36,8 +38,21 @@ fun LifeMapNavGraph(
             navController = navController,
             viewModel = viewModel
         ) }
+
         composable(Screen.Profile.route) { ProfileScreen(navController) }
-        composable(Screen.Settings.route) { SettingsScreen(navController) }
+
+        composable(Screen.Settings.route) {
+            SettingsScreen(
+                navController = navController,
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = onThemeToggle,
+                onLogoutClick = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
 
         composable(
             route = "detail_screen/{memoryId}",
