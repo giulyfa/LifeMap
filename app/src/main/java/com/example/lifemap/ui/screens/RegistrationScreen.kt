@@ -225,8 +225,7 @@ fun RegistrationScreen(
                 if (state is RegistrationState.Loading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.5.dp,
-                        color = Color.Black
+                        strokeWidth = 2.5.dp
                     )
                 } else {
                     Text(
