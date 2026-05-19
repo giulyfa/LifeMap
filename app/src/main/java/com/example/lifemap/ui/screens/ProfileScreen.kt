@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -93,8 +92,9 @@ fun ProfileScreen(
         ) {
             // ── Card info utente ─────────────────────────────────────────────
             UserInfoCard(
+                fname = state.user?.nome ?: "User",
+                lname = state.user?.cognome ?: "Sconosciuto",
                 email = state.user?.email ?: "—",
-                lastLogin = state.user?.lastLogin
             )
 
             // ── Card statistiche rapide ──────────────────────────────────────
@@ -112,7 +112,7 @@ fun ProfileScreen(
 
 // ─── Card info utente ────────────────────────────────────────────────────────
 @Composable
-private fun UserInfoCard(email: String, lastLogin: Long?) {
+private fun UserInfoCard(fname: String, lname: String, email: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -145,33 +145,23 @@ private fun UserInfoCard(email: String, lastLogin: Long?) {
 
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
+                    text = fname,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = lname,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
                     text = email,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-                if (lastLogin != null) {
-                    val formatted = remember(lastLogin) {
-                        SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.ITALIAN)
-                            .format(Date(lastLogin))
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CalendarMonth,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Text(
-                            text = "Ultimo accesso: $formatted",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                        )
-                    }
-                }
             }
         }
     }
