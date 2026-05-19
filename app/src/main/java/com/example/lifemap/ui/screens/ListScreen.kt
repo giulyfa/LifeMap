@@ -54,6 +54,10 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
         }
     }
 
+    val memoriesGroupedByMonth = remember(filteredMemories) {
+        filteredMemories.groupBy { formatMonthYear(it.date) }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -113,13 +117,26 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 80.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(filteredMemories, key = { it.id }) { memory ->
-                        MemoryCard(
-                            memory = memory,
-                            modifier = Modifier.animateItem(),
-                            onClick = { navController.navigate("detail_screen/${memory.id}") },
-                            onFavoriteClick = { viewModel.toggleFavorite(memory) }
-                        )
+                    memoriesGroupedByMonth.forEach { (monthYear, memoriesInMonth) ->
+                        item(key = monthYear) {
+                            Text(
+                                text = monthYear,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier
+                                    .padding(start = 4.dp, bottom = 4.dp)
+                            )
+                        }
+
+                        items(memoriesInMonth, key = { it.id }) { memory ->
+                            MemoryCard(
+                                memory = memory,
+                                modifier = Modifier.animateItem(),
+                                onClick = { navController.navigate("detail_screen/${memory.id}") },
+                                onFavoriteClick = { viewModel.toggleFavorite(memory) }
+                            )
+                        }
                     }
                 }
             }
@@ -144,7 +161,6 @@ fun MemoryCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.elevatedCardColors(
-            // BEIGIOLINO CHIARO
             containerColor = Color(0xFFFFFEF9)
         ),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
@@ -195,7 +211,7 @@ fun MemoryCard(
                     Icon(
                         imageVector = if (memory.isFavorite) Icons.Filled.Star else Icons.Filled.StarBorder,
                         contentDescription = "Preferito",
-                        tint = if (memory.isFavorite) Color(0xFFFFC107) else Color.Gray,
+                        tint = if (memory.isFavorite) Color(0xFFFFC107) else Gold,
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -223,6 +239,11 @@ fun MemoryCard(
             }
         }
     }
+}
+
+fun formatMonthYear(timestamp: Long): String {
+    val sdf = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+    return sdf.format(Date(timestamp)).replaceFirstChar { it.uppercase() }
 }
 
 @Composable
