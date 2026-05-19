@@ -2,6 +2,7 @@ package com.example.lifemap.ui.screens
 
 import android.content.Context
 import android.content.ContextWrapper
+import android.util.Log
 import android.widget.Toast
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
@@ -44,6 +45,14 @@ import com.example.lifemap.ui.LoginState
 import com.example.lifemap.ui.LoginViewModel
 import com.example.lifemap.ui.Screen
 import androidx.compose.runtime.collectAsState
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.CustomCredential
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import com.example.lifemap.BuildConfig
 
 @Composable
 fun LoginScreen(
@@ -55,6 +64,9 @@ fun LoginScreen(
     val context = LocalContext.current
 
     val state by vm.state.collectAsState()
+
+    val coroutineScope = rememberCoroutineScope()
+    val credentialManager = remember { CredentialManager.create(context) }
 
     LaunchedEffect(state) {
         if (state is LoginState.Success) {
@@ -134,7 +146,37 @@ fun LoginScreen(
 
         OutlinedButton(
             onClick = {
-                Toast.makeText(context, "Login Google in arrivo!", Toast.LENGTH_SHORT).show()
+                coroutineScope.launch {
+                    try {
+                        val googleIdOption = GetGoogleIdOption.Builder()
+                            .setFilterByAuthorizedAccounts(false)
+                            .setServerClientId(BuildConfig.WEB_CLIENT_ID)
+                            .setAutoSelectEnabled(true)
+                            .build()
+
+                        val request = GetCredentialRequest.Builder()
+                            .addCredentialOption(googleIdOption)
+                            .build()
+
+                        val result = credentialManager.getCredential(
+                            request = request,
+                            context = context
+                        )
+
+                        val credential = result.credential
+                        if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                            val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+
+                            vm.loginWithGoogle(
+                                email = googleIdTokenCredential.id,
+                                displayName = googleIdTokenCredential.displayName
+                            )
+                        }
+                    } catch (e: Exception) {
+                        Log.e("Loginscreen", "errore durante l'accesso con Google", e)
+                        Toast.makeText(context, "Accesso con Google annullato $e", Toast.LENGTH_SHORT).show()
+                    }
+                }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
