@@ -181,22 +181,23 @@ private fun authenticateWithBiometrics(context: Context, onSuccess: () -> Unit) 
     val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
 
     when (biometricManager.canAuthenticate(authenticators)) {
-        BiometricManager.BIOMETRIC_SUCCESS -> {
-            // Tutto ok, andiamo avanti con l'autenticazione
-        }
+        BiometricManager.BIOMETRIC_SUCCESS -> {}
+
         BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
-            // L'UTENTE NON HA CONFIGURATO IMPRONTA O FACE ID
             Toast.makeText(context, "Il telefono non ha accessi biometrici configurati", Toast.LENGTH_LONG).show()
             return
         }
+
         BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
             Toast.makeText(context, "Il tuo dispositivo non ha un sensore biometrico", Toast.LENGTH_LONG).show()
             return
         }
+
         BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
             Toast.makeText(context, "Sensore temporaneamente non disponibile", Toast.LENGTH_LONG).show()
             return
         }
+
         else -> {
             Toast.makeText(context, "Errore biometrico sconosciuto", Toast.LENGTH_SHORT).show()
             return
