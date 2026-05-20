@@ -42,25 +42,30 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private fun loadProfile() {
         viewModelScope.launch {
             val user = userDao.getLoggedUser()
-            memoryDao.getAllMemories().collectLatest { memories ->
-                val total = memories.size
 
-                val grouped = memories.groupBy { it.category }
-                val stats = grouped.map { (category, list) ->
-                    CategoryStat(
-                        category = category,
-                        count = list.size,
-                        percentage = if (total > 0) list.size.toFloat() / total.toFloat() else 0f
+            if (user != null) {
+                memoryDao.getAllMemoriesForUser(user.email).collectLatest { memories ->
+                    val total = memories.size
+
+                    val grouped = memories.groupBy { it.category }
+                    val stats = grouped.map { (category, list) ->
+                        CategoryStat(
+                            category = category,
+                            count = list.size,
+                            percentage = if (total > 0) list.size.toFloat() / total.toFloat() else 0f
+                        )
+                    }.sortedByDescending { it.count }
+
+                    _uiState.value = ProfileUiState(
+                        user = user,
+                        totalMemories = total,
+                        categoryStats = stats,
+                        isLoading = false,
+                        profilePhotoUri = user?.profilePhotoUri
                     )
-                }.sortedByDescending { it.count }
-
-                _uiState.value = ProfileUiState(
-                    user = user,
-                    totalMemories = total,
-                    categoryStats = stats,
-                    isLoading = false,
-                    profilePhotoUri = user?.profilePhotoUri
-                )
+                }
+            } else {
+                _uiState.value = _uiState.value.copy(isLoading = false)
             }
         }
     }

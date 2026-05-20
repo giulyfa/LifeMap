@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.TurnedInNot
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,26 +37,33 @@ import java.util.Locale
 fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
     val memories by viewModel.allMemories.collectAsState()
 
+    var onlyFavoritesSelected by remember { mutableStateOf(false) }
+    var selectedCategory by remember { mutableStateOf("Tutti") }
+
     val categories = remember(memories) {
         listOf("Tutti") + memories.map { it.category.name }.distinct().sorted()
     }
 
-    var selectedCategory by remember { mutableStateOf("Tutti") }
+    val filteredMemories = remember(memories, selectedCategory, onlyFavoritesSelected) {
+        var result = memories
 
-    val filteredMemories = remember(memories, selectedCategory) {
-        if (selectedCategory == "Tutti") {
-            memories
-        } else {
-            memories.filter { it.category.name == selectedCategory }
+        if (selectedCategory != "Tutti") {
+            result = result.filter { it.category.name == selectedCategory }
         }
+
+        if (onlyFavoritesSelected) {
+            result = result.filter { it.isFavorite }
+        }
+
+        result
     }
 
     val memoriesGroupedByMonth = remember(filteredMemories) {
         filteredMemories.groupBy { formatMonthYear(it.date) }
     }
 
-    // Usiamo il trucco del colore del testo per capire lo stato del tema (Chiaro/Scuro)
     val isDarkTheme = MaterialTheme.colorScheme.onBackground == Color.White
+    val barContentColor = if (isDarkTheme) Color.Black else Color.White
 
     Scaffold(
         topBar = {
@@ -69,9 +75,22 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
+                actions = {
+                    IconToggleButton(
+                        checked = onlyFavoritesSelected,
+                        onCheckedChange = { onlyFavoritesSelected = it }
+                    ) {
+                        Icon(
+                            imageVector = if (onlyFavoritesSelected) Icons.Filled.Star else Icons.Filled.StarBorder,
+                            contentDescription = "Filtra preferiti",
+                            tint = if (onlyFavoritesSelected) Color(0xFFFFC107) else barContentColor,
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary, // Dinamico: Verde o Gold
-                    titleContentColor = if (isDarkTheme) Color.Black else Color.White
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = barContentColor
                 )
             )
         }
@@ -99,11 +118,10 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
                             onClick = { selectedCategory = category },
                             label = { Text(text = category, fontWeight = FontWeight.Medium) },
                             colors = FilterChipDefaults.filterChipColors(
-                                // Colore di selezione: usa il secondary invertito o il primary del tema
-                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                selectedLabelColor = if (isDarkTheme) Color.Black else Color.White,
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                selectedContainerColor = if (isDarkTheme) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                                selectedLabelColor = Color.Black,
+                                containerColor = if (isDarkTheme) Color(0xFF2A2A2A) else Color(0xFFEFECE6),
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                             ),
                             shape = RoundedCornerShape(100),
                             border = null
@@ -112,12 +130,12 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
                 }
             }
 
-            if (memories.isEmpty()) {
-                EmptyState()
+            if (filteredMemories.isEmpty()) {
+                EmptyState(isFilterActive = selectedCategory != "Tutti" || onlyFavoritesSelected)
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 100.dp), // Alzato a 100.dp per stare sopra la BottomBar floating
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 100.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     memoriesGroupedByMonth.forEach { (monthYear, memoriesInMonth) ->
@@ -126,9 +144,8 @@ fun ListScreen(navController: NavController, viewModel: MemoryViewModel) {
                                 text = monthYear,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground, // Dinamico: Bianco o Nero
-                                modifier = Modifier
-                                    .padding(start = 4.dp, bottom = 4.dp)
+                                color = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
                             )
                         }
 
@@ -164,7 +181,7 @@ fun MemoryCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface // Adattivo: crema di giorno, antracite di notte
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
     ) {
@@ -187,12 +204,11 @@ fun MemoryCard(
                         text = memory.title,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface, // Dinamico: Nero o Bianco
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
 
-                    // Badge Categoria Adattivo
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
@@ -203,7 +219,7 @@ fun MemoryCard(
                             text = memory.category.name,
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary // Diventa Gold o Verde
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -215,7 +231,6 @@ fun MemoryCard(
                     Icon(
                         imageVector = if (memory.isFavorite) Icons.Filled.Star else Icons.Filled.StarBorder,
                         contentDescription = "Preferito",
-                        // Stella oro se selezionata, altrimenti colore neutro del tema
                         tint = if (memory.isFavorite) Color(0xFFFFC107) else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(30.dp)
                     )
@@ -232,7 +247,7 @@ fun MemoryCard(
                     Icon(
                         imageVector = Icons.Outlined.CalendarMonth,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary, // Icona coerente (Verde o Gold)
+                        tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(18.dp)
                     )
                     Text(
@@ -252,7 +267,7 @@ fun formatMonthYear(timestamp: Long): String {
 }
 
 @Composable
-fun EmptyState() {
+fun EmptyState(isFilterActive: Boolean) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -268,14 +283,18 @@ fun EmptyState() {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Nessun ricordo salvato",
+            text = if (isFilterActive) "Nessun risultato" else "Nessun ricordo salvato",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Esplora la mappa e premi il tasto + per fissare il tuo primo momento speciale.",
+            text = if (isFilterActive) {
+                "Nessun ricordo preferito!"
+            } else {
+                "Esplora la mappa e premi il tasto + per fissare il tuo primo momento speciale."
+            },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
             textAlign = TextAlign.Center

@@ -6,10 +6,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.lifemap.data.Memory
 import com.example.lifemap.data.MemoryCategory
 import com.example.lifemap.data.MemoryDao
+import com.example.lifemap.data.UserDao
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -25,19 +29,43 @@ data class MemoryUiState(
     val isFavorite: Boolean = false
 )
 
-class MemoryViewModel(private val memoryDao: MemoryDao) : ViewModel() {
+class MemoryViewModel(
+    private val memoryDao: MemoryDao,
+    private val userDao: UserDao
+) : ViewModel() {
 
+    private val _currentUserEmail = MutableStateFlow("")
     private val _uiState = MutableStateFlow(MemoryUiState())
     val uiState: StateFlow<MemoryUiState> = _uiState.asStateFlow()
 
-    val allMemories: StateFlow<List<Memory>> = memoryDao.getAllMemories()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    init {
+        viewModelScope.launch {
+            val user = userDao.getMostRecentLoginUser()
+            if (user != null) {
+                _currentUserEmail.value = user.email
+            }
+        }
+    }
 
-    // Funzioni per aggiornare l'interfaccia
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val allMemories: StateFlow<List<Memory>> = _currentUserEmail
+        .flatMapLatest { email ->
+            if (email.isBlank()) flowOf(emptyList())
+            else memoryDao.getAllMemoriesForUser(email)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+
+    fun loadActiveUser() {
+        viewModelScope.launch {
+            val user = userDao.getMostRecentLoginUser()
+            if (user != null) {
+                _currentUserEmail.value = user.email
+                android.util.Log.d("LifeMapDebug", "Utente caricato con successo: ${user.email}")
+            }
+        }
+    }
+
     fun updateTitle(newTitle: String) {
         _uiState.update { it.copy(title = newTitle) }
     }
@@ -54,29 +82,34 @@ class MemoryViewModel(private val memoryDao: MemoryDao) : ViewModel() {
         _uiState.update { it.copy(category = newCategory) }
     }
 
-    // Funzione per salvare nel database
     fun saveMemory() {
         val currentState = _uiState.value
+        val email = _currentUserEmail.value
 
         // Non salva se il titolo è vuoto
         if (currentState.title.isBlank()) return
 
-        val newMemory = Memory(
-            title = currentState.title,
-            description = currentState.description,
-            date = System.currentTimeMillis(),
-            latitude = currentState.latitude,
-            longitude = currentState.longitude,
-            address = currentState.address,
-            category = currentState.category,
-            imagePath = currentState.imagePath,
-            isFavorite = currentState.isFavorite
-        )
-
-        viewModelScope.launch {
-            memoryDao.insertMemory(newMemory)
-            _uiState.value = MemoryUiState()
+        if (currentState.title.isNotBlank() && email.isNotBlank()) {
+            viewModelScope.launch {
+                val newMemory = Memory(
+                    title = currentState.title,
+                    description = currentState.description,
+                    latitude = currentState.latitude,
+                    longitude = currentState.longitude,
+                    address = currentState.address,
+                    date = System.currentTimeMillis(),
+                    category = currentState.category,
+                    isFavorite = currentState.isFavorite,
+                    userEmail = email
+                )
+                memoryDao.insertMemory(newMemory)
+                resetUiState()
+            }
         }
+    }
+
+    private fun resetUiState() {
+        _uiState.value = MemoryUiState()
     }
 
     fun updateFavorite(isFavorite: Boolean) {
@@ -94,12 +127,15 @@ class MemoryViewModel(private val memoryDao: MemoryDao) : ViewModel() {
         return memoryDao.getMemoryById(id)
     }
 
-    // Factory per creare il ViewModel
-    class Factory(private val memoryDao: MemoryDao) : ViewModelProvider.Factory {
+
+    class Factory(
+        private val memoryDao: MemoryDao,
+        private val userDao: UserDao
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(MemoryViewModel::class.java)) {
-                return MemoryViewModel(memoryDao) as T
+                return MemoryViewModel(memoryDao, userDao) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

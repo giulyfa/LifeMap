@@ -47,7 +47,6 @@ fun SettingsScreen(
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    // Usa il primary dinamico (Verde di giorno, Gold di notte)
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = if (isDarkTheme) Color.Black else Color.White
                 )
@@ -60,7 +59,6 @@ fun SettingsScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                // Aggiungiamo un padding bottom di 100.dp per stare SICURAMENTE sopra la BottomBar floating!
                 .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 100.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -72,7 +70,6 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.onBackground
             )
 
-            // CAMBIO TEMA
             SettingsRowCard {
                 Row(
                     modifier = Modifier
@@ -84,14 +81,14 @@ fun SettingsScreen(
                     SettingsLabel(
                         icon = Icons.Default.DarkMode,
                         title = "Tema Scuro",
-                        subtitle = "Attiva o disattiva la modalità notte"
+                        subtitle = "Attiva o disattiva \nla modalità notte"
                     )
                     Switch(
                         checked = isDarkTheme,
                         onCheckedChange = onThemeToggle,
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = MaterialTheme.colorScheme.background,
-                            checkedTrackColor = MaterialTheme.colorScheme.primary, // Prende il colore attivo dinamico
+                            checkedTrackColor = MaterialTheme.colorScheme.primary,
                             uncheckedThumbColor = Color.Gray,
                             uncheckedTrackColor = Color.LightGray
                         )
@@ -106,7 +103,6 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.onBackground
             )
 
-            // NOTIFICHE
             SettingsRowCard(
                 onClick = {
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
@@ -125,42 +121,48 @@ fun SettingsScreen(
                     SettingsLabel(
                         icon = Icons.Default.Notifications,
                         title = "Notifiche dell'app",
-                        subtitle = "Gestisci i banner e i permessi di sistema"
+                        subtitle = "Gestisci i banner e \ni permessi di sistema"
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // BOTTONE LOGOUT ADATTIVO
-            Button(
-                onClick = {
-                    vm.logout {
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(0) { inclusive = true }
-                        }
+            val logoutColor = if (isDarkTheme) Color(0xFFFFB4AB) else Color(0xFFA51D24)
+
+            SettingsRowCard(onClick = {
+                vm.logout {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
                     }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isDarkTheme) Color(0xFF421013) else Color(0xFFFCE8E6),
-                    contentColor = if (isDarkTheme) Color(0xFFFFB4AB) else Color(0xFFA51D24)
-                ),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Logout,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Disconnetti",
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                }}) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Logout,
+                        contentDescription = null,
+                        tint = logoutColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = "Disconnetti",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = logoutColor
+                        )
+                        Text(
+                            text = "Esci dal tuo account attuale",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                    }
+                }
             }
         }
     }
@@ -176,7 +178,7 @@ fun SettingsRowCard(
         enabled = onClick != null,
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface // Dinamico! Crema di giorno, scuro di notte
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
         modifier = Modifier.fillMaxWidth(),
@@ -198,7 +200,7 @@ fun SettingsLabel(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary, // Dinamico! Verde o Gold
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(24.dp)
         )
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -206,7 +208,7 @@ fun SettingsLabel(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface // Dinamico! Bianco o Nero
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = subtitle,
