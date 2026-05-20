@@ -41,8 +41,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     private fun loadProfile() {
         viewModelScope.launch {
-            val user = userDao.getMostRecentLoginUser()
-
+            val user = userDao.getLoggedUser()
             memoryDao.getAllMemories().collectLatest { memories ->
                 val total = memories.size
 
@@ -68,7 +67,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     fun updateProfilePhoto(uri: String) {
         viewModelScope.launch {
-            val user = userDao.getMostRecentLoginUser() ?: return@launch
+            val user = userDao.getLoggedUser() ?: return@launch
             userDao.updateProfilePhoto(user.id, uri)
             _uiState.value = _uiState.value.copy(
                 profilePhotoUri = uri,

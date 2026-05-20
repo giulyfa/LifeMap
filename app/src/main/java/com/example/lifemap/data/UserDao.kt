@@ -21,4 +21,13 @@ interface UserDao {
 
     @Query("UPDATE users SET profilePhotoUri = :uri WHERE id = :userId")
     suspend fun updateProfilePhoto(userId: Int, uri: String): Int
+
+    @Query("SELECT * FROM users WHERE logged = 1 LIMIT 1")
+    suspend fun getLoggedUser(): User?
+
+    @Query("UPDATE users SET logged = :isLogged WHERE id = :userId")
+    suspend fun updateLoginStatus(userId: Int, isLogged: Boolean)
+
+    @Query("UPDATE users SET logged = 0")
+    suspend fun logoutAllUsers()
 }

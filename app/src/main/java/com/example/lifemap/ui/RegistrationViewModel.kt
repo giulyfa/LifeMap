@@ -50,7 +50,7 @@ class RegistrationViewModel(application: Application) : AndroidViewModel(applica
                     _state.value = RegistrationState.Error("Email già registrata")
                     return@launch
                 }
-                dao.insertUser(User(nome = nome, cognome = cognome, email = email, password = password))
+                dao.insertUser(User(nome = nome, cognome = cognome, email = email, password = password, logged = true))
                 _state.value = RegistrationState.Success
             } catch (e: Exception) {
                 _state.value = RegistrationState.Error("Errore durante la registrazione$e")

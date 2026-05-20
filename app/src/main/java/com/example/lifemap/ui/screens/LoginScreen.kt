@@ -68,6 +68,21 @@ fun LoginScreen(
     val coroutineScope = rememberCoroutineScope()
     val credentialManager = remember { CredentialManager.create(context) }
 
+    val isAlreadyLogged by vm.isAlreadyLogged.collectAsState()
+
+    LaunchedEffect(isAlreadyLogged) {
+        if (isAlreadyLogged == true) {
+            navController.navigate(Screen.Map.route) {
+                popUpTo(Screen.Login.route) { inclusive = true }
+            }
+        }
+    }
+
+    if (isAlreadyLogged == null) {
+        // Puoi mostrare uno splash screen o un caricamento
+        return
+    }
+
     LaunchedEffect(state) {
         if (state is LoginState.Success) {
             vm.resetState()

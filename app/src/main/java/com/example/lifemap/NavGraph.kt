@@ -45,12 +45,7 @@ fun LifeMapNavGraph(
             SettingsScreen(
                 navController = navController,
                 isDarkTheme = isDarkTheme,
-                onThemeToggle = onThemeToggle,
-                onLogoutClick = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
+                onThemeToggle = onThemeToggle
             )
         }
 

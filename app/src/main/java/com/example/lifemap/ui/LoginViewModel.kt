@@ -5,8 +5,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lifemap.data.AppDatabase
 import com.example.lifemap.data.User
+import com.example.lifemap.data.UserDao
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 sealed class LoginState {
@@ -17,11 +19,33 @@ sealed class LoginState {
 }
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
-
     private val dao = AppDatabase.getDatabase(application).userDao()
 
     private val _state = MutableStateFlow<LoginState>(LoginState.Idle)
     val state: StateFlow<LoginState> = _state
+
+    private val _isAlreadyLogged =
+        MutableStateFlow<Boolean?>(null) // null = in caricamento, true = loggato, false = non loggato
+    val isAlreadyLogged: StateFlow<Boolean?> = _isAlreadyLogged.asStateFlow()
+
+    init {
+        checkIfUserIsLogged()
+    }
+
+    private fun checkIfUserIsLogged() {
+        viewModelScope.launch {
+            try {
+                val loggedUser = dao.getLoggedUser()
+                if (loggedUser != null) {
+                    _isAlreadyLogged.value = true
+                } else {
+                    _isAlreadyLogged.value = false
+                }
+            } catch (e: Exception) {
+                _isAlreadyLogged.value = false
+            }
+        }
+    }
 
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
@@ -38,6 +62,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                     user.password != password -> _state.value = LoginState.Error("Password errata")
                     else -> {
                         dao.updateLastLogin(user.id, System.currentTimeMillis())
+                        dao.updateLoginStatus(user.id, true)
                         _state.value = LoginState.Success
                     }
                 }
@@ -65,8 +90,10 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                     )
                     val id = dao.insertUser(newUser)
                     dao.updateLastLogin(id.toInt(), System.currentTimeMillis())
+                    dao.updateLoginStatus(id.toInt(), true)
                 } else {
                     dao.updateLastLogin(user.id, System.currentTimeMillis())
+                    dao.updateLoginStatus(user.id, true)
                 }
                 _state.value = LoginState.Success
             } catch (e: Exception) {
@@ -83,6 +110,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
                 if (user != null) {
                     dao.updateLastLogin(user.id, System.currentTimeMillis())
+                    dao.updateLoginStatus(user.id, true)
                     _state.value = LoginState.Success
                 } else {
                     _state.value = LoginState.Error("Nessun utente recente. Accedi con email e password la prima volta.")

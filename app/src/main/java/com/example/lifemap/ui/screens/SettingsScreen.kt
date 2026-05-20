@@ -21,7 +21,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.lifemap.ui.Screen
+import com.example.lifemap.ui.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +32,7 @@ fun SettingsScreen(
     navController: NavController,
     isDarkTheme: Boolean,
     onThemeToggle: (Boolean) -> Unit,
-    onLogoutClick: () -> Unit
+    vm: SettingsViewModel = viewModel()
 ) {
     val context = LocalContext.current
 
@@ -131,7 +134,13 @@ fun SettingsScreen(
 
             // BOTTONE LOGOUT ADATTIVO
             Button(
-                onClick = onLogoutClick,
+                onClick = {
+                    vm.logout {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (isDarkTheme) Color(0xFF421013) else Color(0xFFFCE8E6),
                     contentColor = if (isDarkTheme) Color(0xFFFFB4AB) else Color(0xFFA51D24)
