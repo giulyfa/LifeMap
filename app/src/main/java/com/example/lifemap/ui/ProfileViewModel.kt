@@ -61,7 +61,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                         totalMemories = total,
                         categoryStats = stats,
                         isLoading = false,
-                        profilePhotoUri = user?.profilePhotoUri
+                        profilePhotoUri = user.profilePhotoUri
                     )
                 }
             } else {

@@ -32,6 +32,7 @@ fun SettingsScreen(
     navController: NavController,
     isDarkTheme: Boolean,
     onThemeToggle: (Boolean) -> Unit,
+    onLogoutClick: () -> Unit,
     vm: SettingsViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -132,9 +133,7 @@ fun SettingsScreen(
 
             SettingsRowCard(onClick = {
                 vm.logout {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
+                    onLogoutClick()
                 }}) {
                 Row(
                     modifier = Modifier

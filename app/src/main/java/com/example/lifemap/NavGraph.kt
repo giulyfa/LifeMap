@@ -30,7 +30,14 @@ fun LifeMapNavGraph(
         startDestination = Screen.Login.route,
         modifier = modifier
     ) {
-        composable(Screen.Login.route) { LoginScreen(navController) }
+        composable(Screen.Login.route) {
+            LoginScreen(
+                navController = navController,
+                onLoginSuccess = {
+                    viewModel.loadActiveUser()
+                }
+            )
+        }
 
         composable(Screen.Map.route) { MapScreen(navController, viewModel) }
 
@@ -45,7 +52,13 @@ fun LifeMapNavGraph(
             SettingsScreen(
                 navController = navController,
                 isDarkTheme = isDarkTheme,
-                onThemeToggle = onThemeToggle
+                onThemeToggle = onThemeToggle,
+                onLogoutClick = {
+                    viewModel.loadActiveUser()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -62,6 +75,13 @@ fun LifeMapNavGraph(
             )
         }
 
-        composable(Screen.Registration.route) { RegistrationScreen(navController = navController)}
+        composable(Screen.Registration.route) {
+            RegistrationScreen(
+                navController = navController,
+                onRegistrationSuccess = {
+                    viewModel.loadActiveUser()
+                }
+            )
+        }
     }
 }
