@@ -18,4 +18,7 @@ interface UserDao {
 
     @Query("SELECT * FROM users ORDER BY lastLogin DESC LIMIT 1")
     suspend fun getMostRecentLoginUser(): User?
+
+    @Query("UPDATE users SET profilePhotoUri = :uri WHERE id = :userId")
+    suspend fun updateProfilePhoto(userId: Int, uri: String): Int
 }
