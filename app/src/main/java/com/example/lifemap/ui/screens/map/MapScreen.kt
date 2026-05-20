@@ -99,7 +99,6 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
         }
 
         if (hasLocationPermission) {
-            // PULSANTE CENTRA GPS (Coordinato col Tema)
             FloatingActionButton(
                 onClick = {
                     val fineLocationPermission = ContextCompat.checkSelfPermission(

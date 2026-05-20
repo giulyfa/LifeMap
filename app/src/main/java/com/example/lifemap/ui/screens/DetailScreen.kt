@@ -37,9 +37,7 @@ fun DetailScreen(
         memory = viewModel.getMemoryById(memoryId)
     }
 
-    // Rileviamo se siamo in Dark Mode leggendo i colori attuali del tema
     val isDarkTheme = !MaterialTheme.colorScheme.background.colorsM3LightOrDarkCheck()
-    // Nota: Più semplicemente, controlliamo il colore del testo per sapere se siamo in dark mode
     val textColor = MaterialTheme.colorScheme.onBackground
 
     val formattedDate = remember(memory?.date) {
@@ -63,7 +61,6 @@ fun DetailScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Torna indietro",
-                            // Se è Gold di notte, l'icona deve essere nera. Se è Verde di giorno, bianca.
                             tint = if (textColor == Color.White) Color.Black else Color.White
                         )
                     }
@@ -84,7 +81,7 @@ fun DetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary, // Dinamico: Verde o Gold
+                    containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = if (textColor == Color.White) Color.Black else Color.White
                 )
             )
@@ -99,7 +96,6 @@ fun DetailScreen(
                     .padding(horizontal = 20.dp, vertical = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // BADGE CATEGORIA DINAMICO
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
@@ -110,11 +106,10 @@ fun DetailScreen(
                         text = currentMemory.category.name,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary // Diventa Gold o Verde
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
 
-                // TITOLO DIZIONARIO/DIARIO
                 Text(
                     text = currentMemory.title,
                     style = MaterialTheme.typography.headlineLarge,
@@ -122,12 +117,10 @@ fun DetailScreen(
                     color = MaterialTheme.colorScheme.onBackground
                 )
 
-                // BLOCCO METADATI
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.padding(vertical = 4.dp)
                 ) {
-                    // DATA
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -135,7 +128,7 @@ fun DetailScreen(
                         Icon(
                             imageVector = Icons.Outlined.CalendarMonth,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
@@ -145,7 +138,6 @@ fun DetailScreen(
                         )
                     }
 
-                    // LUOGO
                     Row(
                         verticalAlignment = Alignment.Top,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -153,7 +145,7 @@ fun DetailScreen(
                         Icon(
                             imageVector = Icons.Outlined.Place,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.size(20.dp).padding(top = 2.dp)
                         )
                         Text(
@@ -166,7 +158,6 @@ fun DetailScreen(
 
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
 
-                // DESCRIZIONE / NOTE
                 if (currentMemory.description.isNotBlank()) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
@@ -176,7 +167,6 @@ fun DetailScreen(
                             color = MaterialTheme.colorScheme.onBackground
                         )
 
-                        // Card che passa da crema a scura di notte
                         ElevatedCard(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),

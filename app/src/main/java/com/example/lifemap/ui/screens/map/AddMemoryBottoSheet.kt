@@ -52,7 +52,6 @@ fun AddMemoryBottomSheet(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            // CHIP DELL'INDIRIZZO (Colori Adattivi)
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
@@ -65,7 +64,7 @@ fun AddMemoryBottomSheet(
                     Icon(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = "Posizione",
-                        tint = MaterialTheme.colorScheme.primary, // Verde/Gold dinamico
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
@@ -78,7 +77,6 @@ fun AddMemoryBottomSheet(
                 }
             }
 
-            // HEADER
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -115,7 +113,6 @@ fun AddMemoryBottomSheet(
                 )
             }
 
-            // TITOLO
             MemoryFormField(
                 label = "TITOLO",
                 value = uiState.title,
@@ -123,7 +120,6 @@ fun AddMemoryBottomSheet(
                 placeholder = "Dai un nome a questo momento..."
             )
 
-            // DESCRIZIONE
             MemoryFormField(
                 label = "NOTE",
                 value = uiState.description,
@@ -133,7 +129,6 @@ fun AddMemoryBottomSheet(
                 singleLine = false
             )
 
-            // CATEGORIA
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -188,7 +183,6 @@ fun AddMemoryBottomSheet(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // PULSANTE SALVA
             Button(
                 onClick = {
                     viewModel.saveMemory()

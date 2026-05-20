@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-// PALETTE SCURA
 private val DarkColorScheme = darkColorScheme(
     primary = Green2,
     secondary = Gold,
@@ -26,7 +25,6 @@ private val DarkColorScheme = darkColorScheme(
     outlineVariant = Color(0xFF444444)
 )
 
-// PALETTE CHIARA
 private val LightColorScheme = lightColorScheme(
     primary = Green2,
     secondary = Gold,

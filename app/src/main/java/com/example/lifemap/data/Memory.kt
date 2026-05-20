@@ -23,5 +23,6 @@ data class Memory(
     val address: String,
     val category: MemoryCategory,
     val imagePath: String? = null,
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val userEmail: String
 )
