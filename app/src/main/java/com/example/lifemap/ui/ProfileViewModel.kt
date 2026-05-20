@@ -22,7 +22,8 @@ data class ProfileUiState(
     val user: User? = null,
     val totalMemories: Int = 0,
     val categoryStats: List<CategoryStat> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val profilePhotoUri: String? = null
 )
 
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
@@ -59,12 +60,24 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                         user = user,
                         totalMemories = total,
                         categoryStats = stats,
-                        isLoading = false
+                        isLoading = false,
+                        profilePhotoUri = user?.profilePhotoUri
                     )
                 }
             } else {
                 _uiState.value = _uiState.value.copy(isLoading = false)
             }
+        }
+    }
+
+    fun updateProfilePhoto(uri: String) {
+        viewModelScope.launch {
+            val user = userDao.getMostRecentLoginUser() ?: return@launch
+            userDao.updateProfilePhoto(user.id, uri)
+            _uiState.value = _uiState.value.copy(
+                profilePhotoUri = uri,
+                user = user.copy(profilePhotoUri = uri)
+            )
         }
     }
 }
