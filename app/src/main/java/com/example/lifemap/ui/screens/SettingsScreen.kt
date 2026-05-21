@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -31,7 +33,8 @@ import com.example.lifemap.ui.SettingsViewModel
 fun SettingsScreen(
     navController: NavController,
     isDarkTheme: Boolean,
-    onThemeToggle: (Boolean) -> Unit,
+    themePreference: Int,
+    onThemeChanged: (Int) -> Unit,
     onLogoutClick: () -> Unit,
     vm: SettingsViewModel = viewModel()
 ) {
@@ -71,37 +74,17 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.onBackground
             )
 
-            SettingsRowCard {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    SettingsLabel(
-                        icon = Icons.Default.DarkMode,
-                        title = "Tema Scuro",
-                        subtitle = "Attiva o disattiva \nla modalità notte"
-                    )
-                    Switch(
-                        checked = isDarkTheme,
-                        onCheckedChange = onThemeToggle,
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = MaterialTheme.colorScheme.background,
-                            checkedTrackColor = MaterialTheme.colorScheme.primary,
-                            uncheckedThumbColor = Color.Gray,
-                            uncheckedTrackColor = Color.LightGray
-                        )
-                    )
-                }
-            }
+            ThemeSelectionSection(
+                currentPreference = themePreference,
+                onPreferenceChange = onThemeChanged
+            )
 
             Text(
                 text = "Dispositivo ed Avvisi",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(top = 8.dp)
             )
 
             SettingsRowCard(
@@ -214,6 +197,65 @@ fun SettingsLabel(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
+        }
+    }
+}
+
+@Composable
+fun ThemeSelectionSection(
+    currentPreference: Int,
+    onPreferenceChange: (Int) -> Unit
+) {
+    val options = listOf(
+        0 to "Auto",
+        1 to "Chiaro",
+        2 to "Scuro"
+    )
+
+    SettingsRowCard {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            SettingsLabel(
+                icon = Icons.Default.DarkMode,
+                title = "Tema dell'app",
+                subtitle = "Scegli l'aspetto visivo"
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                        shape = RoundedCornerShape(50)
+                    )
+                    .padding(4.dp)
+            ) {
+                options.forEach { (value, label) ->
+                    val isSelected = currentPreference == value
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(50))
+                            .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
+                            .clickable { onPreferenceChange(value) }
+                            .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
         }
     }
 }

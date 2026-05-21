@@ -30,7 +30,8 @@ import com.example.lifemap.ui.theme.Green2
 fun LifeMapApp(
     viewModel: MemoryViewModel,
     isDarkTheme: Boolean,
-    onThemeToggle: (Boolean) -> Unit
+    themePreference: Int,
+    onThemeToggle: (Int) -> Unit
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -57,6 +58,7 @@ fun LifeMapApp(
             navController = navController,
             viewModel = viewModel,
             isDarkTheme = isDarkTheme,
+            themePreference = themePreference,
             onThemeToggle = onThemeToggle,
             modifier = Modifier.fillMaxSize()
         )

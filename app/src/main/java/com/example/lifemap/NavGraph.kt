@@ -22,7 +22,8 @@ fun LifeMapNavGraph(
     navController: NavHostController,
     viewModel: MemoryViewModel,
     isDarkTheme: Boolean,
-    onThemeToggle: (Boolean) -> Unit,
+    themePreference: Int,
+    onThemeToggle: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -52,7 +53,8 @@ fun LifeMapNavGraph(
             SettingsScreen(
                 navController = navController,
                 isDarkTheme = isDarkTheme,
-                onThemeToggle = onThemeToggle,
+                themePreference = themePreference,
+                onThemeChanged= onThemeToggle,
                 onLogoutClick = {
                     viewModel.loadActiveUser()
                     navController.navigate(Screen.Login.route) {

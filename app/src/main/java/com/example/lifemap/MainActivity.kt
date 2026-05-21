@@ -29,22 +29,16 @@ class MainActivity : FragmentActivity() {
                 context.getSharedPreferences("lifemap_settings", Context.MODE_PRIVATE)
             }
 
-            val systemInDark = isSystemInDarkTheme()
+            val isSystemDark = isSystemInDarkTheme()
 
-            var isDarkTheme by remember {
-                mutableStateOf(
-                    if (sharedPreferences.contains("is_dark_theme")) {
-                        sharedPreferences.getBoolean("is_dark_theme", systemInDark)
-                    } else {
-                        systemInDark
-                    }
-                )
+            var themePreference by remember {
+                mutableIntStateOf(sharedPreferences.getInt("theme_pref", 0))
             }
 
-            LaunchedEffect(systemInDark) {
-                if (!sharedPreferences.contains("is_dark_theme")) {
-                    isDarkTheme = systemInDark
-                }
+            val isDarkTheme = when (themePreference) {
+                1 -> false
+                2 -> true
+                else -> isSystemDark
             }
 
             LifeMapTheme(darkTheme = isDarkTheme) {
@@ -63,9 +57,14 @@ class MainActivity : FragmentActivity() {
                     LifeMapApp(
                         viewModel = viewModel,
                         isDarkTheme = isDarkTheme,
-                        onThemeToggle = { targetDark ->
-                            isDarkTheme = targetDark
-                            sharedPreferences.edit { putBoolean("is_dark_theme", targetDark) }
+                        themePreference = themePreference,
+                        onThemeToggle = { newPref ->
+                            themePreference = newPref
+                            if (newPref == 0) {
+                                sharedPreferences.edit { remove("theme_pref") }
+                            } else {
+                                sharedPreferences.edit { putInt("theme_pref", newPref) }
+                            }
                         }
                     )
                 }
