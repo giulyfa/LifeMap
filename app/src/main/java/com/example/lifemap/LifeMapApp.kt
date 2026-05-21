@@ -102,7 +102,7 @@ private fun LifeMapBottomBar(
                         Icon(
                             imageVector = screen.icon!!,
                             contentDescription = screen.label,
-                            tint = if (selected) Green2 else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )
                     },
                     label = {
@@ -123,7 +123,7 @@ private fun LifeMapBottomBar(
                         }
                     },
                     colors = NavigationBarItemDefaults.colors(
-                        indicatorColor = Green2.copy(alpha = 0.2f)
+                        indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                     )
                 )
             }
