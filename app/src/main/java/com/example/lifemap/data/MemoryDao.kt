@@ -27,4 +27,7 @@ interface MemoryDao {
 
     @Update
     suspend fun updateMemory(memory: Memory)
+
+    @Query("SELECT * FROM memories WHERE isFavorite = 1 AND userEmail = :email")
+    suspend fun getAllFavoriteMemories(email: String): List<Memory>
 }

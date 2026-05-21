@@ -3,6 +3,9 @@ package com.example.lifemap.ui.screens
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,6 +18,8 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,10 +28,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.lifemap.ui.Screen
 import com.example.lifemap.ui.SettingsViewModel
+import android.Manifest
+import android.content.Context
+import android.os.Build
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +48,19 @@ fun SettingsScreen(
     vm: SettingsViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val sharedPrefs = remember { context.getSharedPreferences("lifemap_settings", Context.MODE_PRIVATE) }
+
+    var notificationsEnabled by remember {
+        mutableStateOf(sharedPrefs.getBoolean("notifications_enabled", false))
+    }
+
+    // Launcher per chiedere il permesso (Android 13+)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        notificationsEnabled = isGranted
+        sharedPrefs.edit { putBoolean("notifications_enabled", isGranted) }
+    }
 
     Scaffold(
         topBar = {
@@ -87,25 +109,30 @@ fun SettingsScreen(
                 modifier = Modifier.padding(top = 8.dp)
             )
 
-            SettingsRowCard(
-                onClick = {
-                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = Uri.fromParts("package", context.packageName, null)
-                    }
-                    context.startActivity(intent)
-                }
-            ) {
+            SettingsRowCard {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     SettingsLabel(
                         icon = Icons.Default.Notifications,
-                        title = "Notifiche dell'app",
-                        subtitle = "Gestisci i banner e \ni permessi di sistema"
+                        title = "Notifiche Anniversari",
+                        subtitle = "Ricevi avvisi per i tuoi ricordi preferiti"
+                    )
+                    Switch(
+                        checked = notificationsEnabled,
+                        onCheckedChange = { enabled ->
+                            if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                // Chiede il permesso se l'utente vuole attivare
+                                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            } else {
+                                notificationsEnabled = enabled
+                                sharedPrefs.edit { putBoolean("notifications_enabled", enabled) }
+                            }
+                        }
                     )
                 }
             }

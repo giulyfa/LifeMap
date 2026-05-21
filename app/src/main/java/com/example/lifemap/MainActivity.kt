@@ -17,10 +17,43 @@ import com.example.lifemap.data.AppDatabase
 import com.example.lifemap.ui.MemoryViewModel
 import com.example.lifemap.ui.theme.*
 import androidx.core.content.edit
+import androidx.work.*
+import com.example.lifemap.ui.MemoryNotificationWorker
+import java.util.concurrent.TimeUnit
 
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val workRequest = PeriodicWorkRequestBuilder<MemoryNotificationWorker>(1, TimeUnit.DAYS)
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiresBatteryNotLow(true)
+                    .build()
+            )
+            .build()
+
+        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+            "MemoryAnniversaryWork",
+            ExistingPeriodicWorkPolicy.UPDATE,
+            workRequest
+        )
+
+//        val testWorkRequest = OneTimeWorkRequestBuilder<MemoryNotificationWorker>()
+//            .setConstraints(
+//                Constraints.Builder()
+//                    .setRequiresBatteryNotLow(true)
+//                    .build()
+//            )
+//            .build()
+//
+//        // Usiamo REPLACE in modo che sovrascriva qualsiasi tentativo precedente bloccato
+//        WorkManager.getInstance(applicationContext).enqueueUniqueWork(
+//            "MemoryAnniversaryWork_TEST",
+//            ExistingWorkPolicy.REPLACE,
+//            testWorkRequest
+//        )
+
         enableEdgeToEdge()
         setContent {
             val context = LocalContext.current
