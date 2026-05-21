@@ -77,13 +77,12 @@ fun ProfileScreen(
     val state by vm.uiState.collectAsState()
     val context = LocalContext.current
 
-    // Stato per mostrare/nascondere il dialog di scelta
     var showSourceDialog by remember { mutableStateOf(false) }
-
-    // Stato per salvare l'Uri temporaneo della fotocamera
     var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
 
-    // --- LAUNCHER PER LA GALLERIA (PHOTO PICKER SENZA PERMESSI) ---
+    val isDarkTheme = MaterialTheme.colorScheme.onBackground == Color.White
+    val headerContentColor = if (isDarkTheme) Color.Black else Color.White
+
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
@@ -96,7 +95,6 @@ fun ProfileScreen(
         }
     }
 
-    // --- LAUNCHERS PER LA FOTOCAMERA ---
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success) {
             tempCameraUri?.let { vm.updateProfilePhoto(it.toString()) }
@@ -114,12 +112,12 @@ fun ProfileScreen(
         }
     }
 
-    // --- DIALOG DI SCELTA ---
     if (showSourceDialog) {
         AlertDialog(
             onDismissRequest = { showSourceDialog = false },
-            title = { Text("Cambia foto profilo") },
-            text = { Text("Scegli da dove vuoi prendere la foto.") },
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { Text("Cambia foto profilo", color = MaterialTheme.colorScheme.onSurface) },
+            text = { Text("Scegli da dove vuoi prendere la foto.", color = MaterialTheme.colorScheme.onSurfaceVariant) },
             confirmButton = {
                 TextButton(onClick = {
                     showSourceDialog = false
@@ -131,18 +129,17 @@ fun ProfileScreen(
                         cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                     }
                 }) {
-                    Text("Fotocamera")
+                    Text("Fotocamera", color = MaterialTheme.colorScheme.primary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = {
                     showSourceDialog = false
-                    // Lanciamo il Photo Picker! Nessun permesso richiesto.
                     galleryLauncher.launch(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
                 }) {
-                    Text("Galleria")
+                    Text("Galleria", color = MaterialTheme.colorScheme.primary)
                 }
             }
         )
@@ -151,14 +148,29 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Profilo") },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                title = {
+                    Text(
+                        text = "Profilo",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = headerContentColor
+                )
             )
         }
     ) { paddingValues ->
         if (state.isLoading) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
             return@Scaffold
         }
@@ -166,16 +178,18 @@ fun ProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 100.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             UserInfoCard(
                 fname = state.user?.nome ?: "User",
                 lname = state.user?.cognome ?: "Sconosciuto",
                 email = state.user?.email ?: "—",
                 profilePhotoUri = state.profilePhotoUri,
+                isDarkTheme = isDarkTheme,
                 onChangePhoto = { showSourceDialog = true }
             )
 
@@ -187,16 +201,13 @@ fun ProfileScreen(
     }
 }
 
-// Funzione helper per creare l'Uri temporaneo per la fotocamera
 private fun Context.createTempImageUri(): Uri {
     val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
     val imageFile = File.createTempFile(
         "JPEG_${timeStamp}_",
         ".jpg",
-        cacheDir // Usiamo la cacheDir interna in modo sicuro
+        cacheDir
     )
-
-    // IMPORTANTE: deve corrispondere all'authorities nel Manifest
     return FileProvider.getUriForFile(
         this,
         "com.example.lifemap.fileprovider",
@@ -204,23 +215,22 @@ private fun Context.createTempImageUri(): Uri {
     )
 }
 
-// ... I COMPONENTI UI (UserInfoCard, StatsCard, PieChartCard, PieChart, Legend, EmptyMemoriesCard) RIMANGONO INVARIATI ...
-// Ricordati di incollare qui sotto i componenti UI che c'erano prima, o di non cancellarli dal tuo file originale!
-
 @Composable
 private fun UserInfoCard(
     fname: String,
     lname: String,
     email: String,
     profilePhotoUri: String?,
+    isDarkTheme: Boolean,
     onChangePhoto: () -> Unit
 ) {
-    Card(
+    ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
@@ -233,6 +243,7 @@ private fun UserInfoCard(
                 modifier = Modifier.size(72.dp),
                 contentAlignment = Alignment.BottomEnd
             ) {
+                // Avatar grande
                 Box(
                     modifier = Modifier
                         .size(72.dp)
@@ -257,7 +268,7 @@ private fun UserInfoCard(
                         Icon(
                             imageVector = Icons.Default.AccountCircle,
                             contentDescription = "Avatar",
-                            tint = MaterialTheme.colorScheme.onPrimary,
+                            tint = if (isDarkTheme) Color.Black else Color.White,
                             modifier = Modifier.size(44.dp)
                         )
                     }
@@ -267,16 +278,16 @@ private fun UserInfoCard(
                     modifier = Modifier
                         .size(24.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.secondary)
-                        .border(2.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
                         .clickable { onChangePhoto() },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.AddAPhoto,
                         contentDescription = "Cambia foto profilo",
-                        tint = MaterialTheme.colorScheme.onSecondary,
-                        modifier = Modifier.size(13.dp)
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(14.dp)
                     )
                 }
             }
@@ -284,19 +295,19 @@ private fun UserInfoCard(
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     text = "$fname $lname",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = email,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = "Tocca la foto per cambiarla",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
             }
         }
@@ -305,9 +316,13 @@ private fun UserInfoCard(
 
 @Composable
 private fun StatsCard(totalMemories: Int) {
-    Card(
+    ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
@@ -320,13 +335,13 @@ private fun StatsCard(totalMemories: Int) {
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Collections,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -334,12 +349,13 @@ private fun StatsCard(totalMemories: Int) {
                 Text(
                     text = "$totalMemories",
                     style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = if (totalMemories == 1) "ricordo salvato" else "ricordi salvati",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -354,20 +370,25 @@ private fun PieChartCard(stats: List<CategoryStat>) {
         animationProgress.animateTo(1f, animationSpec = tween(durationMillis = 900))
     }
 
-    Card(
+    ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Text(
                 text = "Ricordi per categoria",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Box(
@@ -424,16 +445,16 @@ private fun PieChart(
 
 @Composable
 private fun Legend(stats: List<CategoryStat>) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         stats.forEachIndexed { index, stat ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(12.dp)
+                        .size(14.dp)
                         .clip(CircleShape)
                         .background(colorForCategory(stat.category, index))
                 )
@@ -442,13 +463,15 @@ private fun Legend(stats: List<CategoryStat>) {
                         .lowercase()
                         .replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
                 Text(
                     text = "${stat.count} (${(stat.percentage * 100).toInt()}%)",
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -457,32 +480,38 @@ private fun Legend(stats: List<CategoryStat>) {
 
 @Composable
 private fun EmptyMemoriesCard() {
-    Card(
+    ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Collections,
                 contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                modifier = Modifier.size(56.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
             )
             Text(
                 text = "Nessun ricordo ancora",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "Aggiungi il tuo primo ricordo per vedere le statistiche",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
     }
