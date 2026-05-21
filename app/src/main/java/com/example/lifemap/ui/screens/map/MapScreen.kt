@@ -4,11 +4,17 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,7 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.lifemap.R
@@ -31,6 +39,7 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.*
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -46,6 +55,8 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
 
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var isPickingLocationMode by remember { mutableStateOf(false) }
+    val geocoder = remember { Geocoder(context, Locale.getDefault()) }
 
     var hasLocationPermission by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -85,7 +96,27 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
             properties = mapProperties,
-            uiSettings = uiSettings
+            uiSettings = uiSettings,
+            onMapClick = {
+                if (isPickingLocationMode) {
+                    val targetLocation = cameraPositionState.position.target
+
+                    scope.launch {
+                        try {
+                            val addresses = geocoder.getFromLocation(targetLocation.latitude, targetLocation.longitude, 1)
+                            val addressText = addresses?.firstOrNull()?.getAddressLine(0)
+                                ?: "Posizione selezionata"
+
+                            viewModel.updateLocation(targetLocation.latitude, targetLocation.longitude, addressText)
+
+                            isPickingLocationMode = false
+                            showBottomSheet = true
+                        } catch (e: Exception) {
+                            Log.e("MapScreen", "Errore geocoding", e)
+                        }
+                    }
+                }
+            }
         ) {
             memories.forEach { memory ->
                 Marker(
@@ -94,6 +125,55 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
                     snippet = memory.description,
                     icon = getPinColorForCategory(memory.category),
                     anchor = Offset(0.5f, 1.0f)
+                )
+            }
+        }
+
+        AnimatedVisibility(
+            visible = isPickingLocationMode,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = 60.dp, start = 16.dp, end = 16.dp)
+        ) {
+            ElevatedCard(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "SPOSTA LA MAPPA",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        letterSpacing = 1.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Il punto al centro è il luogo del tuo ricordo.\nTocca la mappa per confermare.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+        }
+
+        if (isPickingLocationMode) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 36.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "Perno",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(48.dp)
                 )
             }
         }
@@ -130,7 +210,6 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
                 Icon(Icons.Default.MyLocation, contentDescription = "Centra GPS")
             }
 
-            // PULSANTE AGGIUNGI RICORDO
             FloatingActionButton(
                 onClick = {
                     val fineLocationPermission = ContextCompat.checkSelfPermission(
@@ -197,12 +276,15 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
             }
         }
 
-        // BOTTOM SHEET
         if (showBottomSheet) {
             AddMemoryBottomSheet(
                 uiState = uiState,
                 viewModel = viewModel,
                 sheetState = sheetState,
+                onSelectLocationOnMap = {
+                    isPickingLocationMode = true
+                    showBottomSheet = false
+                },
                 onDismiss = { showBottomSheet = false }
             )
         }

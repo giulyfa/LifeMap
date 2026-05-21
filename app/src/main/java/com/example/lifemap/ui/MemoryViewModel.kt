@@ -26,7 +26,8 @@ data class MemoryUiState(
     val longitude: Double = 0.0,
     val address: String = "",
     val imagePath: String? = null,
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val date: Long = System.currentTimeMillis(),
 )
 
 class MemoryViewModel(
@@ -97,7 +98,7 @@ class MemoryViewModel(
                     latitude = currentState.latitude,
                     longitude = currentState.longitude,
                     address = currentState.address,
-                    date = System.currentTimeMillis(),
+                    date = currentState.date,
                     category = currentState.category,
                     isFavorite = currentState.isFavorite,
                     userEmail = email
@@ -122,6 +123,9 @@ class MemoryViewModel(
             memoryDao.updateMemory(updatedMemory)
         }
     }
+
+    fun updateAddress(addr: String) { _uiState.update { it.copy(address = addr) } }
+    fun updateDate(newDate: Long) { _uiState.update { it.copy(date = newDate) } }
 
     suspend fun getMemoryById(id: Int): Memory? {
         return memoryDao.getMemoryById(id)

@@ -1,11 +1,14 @@
 package com.example.lifemap.ui.screens.map
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
@@ -17,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lifemap.data.MemoryCategory
@@ -32,10 +36,41 @@ fun AddMemoryBottomSheet(
     uiState: MemoryUiState,
     viewModel: MemoryViewModel,
     sheetState: SheetState,
+    onSelectLocationOnMap: () -> Unit,
     onDismiss: () -> Unit
 ) {
     var isDropdownExpanded by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
+
+    val formattedDate = remember(uiState.date) {
+        SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(uiState.date))
+    }
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = uiState.date)
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { viewModel.updateDate(it) }
+                    showDatePicker = false
+                }) {
+                    Text("Conferma", color = MaterialTheme.colorScheme.primary)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Annulla", color = MaterialTheme.colorScheme.primary)
+                }
+            },
+            colors = DatePickerDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.surface,
+            )
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -52,14 +87,69 @@ fun AddMemoryBottomSheet(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
-                    .padding(horizontal = 14.dp, vertical = 6.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Nuovo ricordo",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+                )
+
+                IconToggleButton(
+                    checked = uiState.isFavorite,
+                    onCheckedChange = { viewModel.updateFavorite(it) }
+                ) {
+                    Icon(
+                        imageVector = if (uiState.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
+                        contentDescription = "Preferito",
+                        tint = if (uiState.isFavorite) Color(0xFFFFC107) else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
+                        .clickable { showDatePicker = true }
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = "Cambia data",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = formattedDate,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
+                        .clickable {
+                            onDismiss()
+                            onSelectLocationOnMap()
+                        }
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.LocationOn,
@@ -72,45 +162,11 @@ fun AddMemoryBottomSheet(
                         text = uiState.address,
                         color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1, // Evita che l'indirizzo vada a capo rompendo il design
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
-            }
-
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Nuovo ricordo",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
-                    )
-
-                    IconToggleButton(
-                        checked = uiState.isFavorite,
-                        onCheckedChange = { viewModel.updateFavorite(it) }
-                    ) {
-                        Icon(
-                            imageVector = if (uiState.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-                            contentDescription = "Preferito",
-                            tint = if (uiState.isFavorite) Color(0xFFFFC107) else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-                }
-
-                val currentTime = remember { SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date()) }
-                Text(
-                    text = "Oggi • $currentTime",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                    style = MaterialTheme.typography.labelMedium
-                )
             }
 
             MemoryFormField(
@@ -160,7 +216,7 @@ fun AddMemoryBottomSheet(
                     ExposedDropdownMenu(
                         expanded = isDropdownExpanded,
                         onDismissRequest = { isDropdownExpanded = false },
-                        containerColor = MaterialTheme.colorScheme.surface // Sfondo menu coerente
+                        containerColor = MaterialTheme.colorScheme.surface
                     ) {
                         MemoryCategory.entries.forEach { category ->
                             DropdownMenuItem(
@@ -193,8 +249,8 @@ fun AddMemoryBottomSheet(
                     .height(54.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary, // Dinamico!
-                    contentColor = MaterialTheme.colorScheme.onPrimary  // Testo contrastato correttamente
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
                 Icon(
