@@ -1,6 +1,5 @@
 package com.example.lifemap
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -43,16 +42,22 @@ class MainActivity : FragmentActivity() {
         setContent {
             val context = LocalContext.current
 
+            val database = AppDatabase.getDatabase(context)
+            val memoryDao = database.memoryDao()
+            val userDao = database.userDao()
+
+            val viewModel: MemoryViewModel = viewModel(
+                factory = MemoryViewModel.Factory(memoryDao, userDao)
+            )
+
             val sharedPreferences = remember {
-                context.getSharedPreferences("lifemap_settings", Context.MODE_PRIVATE)
+                context.getSharedPreferences("lifemap_settings", MODE_PRIVATE)
             }
 
             val isSystemDark = isSystemInDarkTheme()
-
             var themePreference by remember {
                 mutableIntStateOf(sharedPreferences.getInt("theme_pref", 0))
             }
-
             val isDarkTheme = when (themePreference) {
                 1 -> false
                 2 -> true
@@ -64,14 +69,6 @@ class MainActivity : FragmentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val database = AppDatabase.getDatabase(context)
-                    val memoryDao = database.memoryDao()
-                    val userDao = database.userDao()
-
-                    val viewModel: MemoryViewModel = viewModel(
-                        factory = MemoryViewModel.Factory(memoryDao, userDao)
-                    )
-
                     LifeMapApp(
                         viewModel = viewModel,
                         isDarkTheme = isDarkTheme,

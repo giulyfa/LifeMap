@@ -56,7 +56,8 @@ fun LifeMapNavGraph(
                 themePreference = themePreference,
                 onThemeChanged= onThemeToggle,
                 onLogoutClick = {
-                    viewModel.loadActiveUser()
+                    viewModel.clearActiveUser()
+
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }

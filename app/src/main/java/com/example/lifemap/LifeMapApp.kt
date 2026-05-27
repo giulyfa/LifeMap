@@ -24,8 +24,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.lifemap.ui.MemoryViewModel
 import com.example.lifemap.ui.Screen
-import com.example.lifemap.ui.theme.Green2
-
 @Composable
 fun LifeMapApp(
     viewModel: MemoryViewModel,

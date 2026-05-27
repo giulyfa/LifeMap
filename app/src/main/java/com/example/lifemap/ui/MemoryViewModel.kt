@@ -112,6 +112,11 @@ class MemoryViewModel(
         _uiState.value = MemoryUiState()
     }
 
+    fun clearActiveUser() {
+        _currentUserEmail.value = ""
+        _uiState.value = MemoryUiState()
+    }
+
     fun updateFavorite(isFavorite: Boolean) {
         _uiState.update { it.copy(isFavorite = isFavorite) }
     }
