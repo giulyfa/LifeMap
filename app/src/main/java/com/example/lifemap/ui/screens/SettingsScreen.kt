@@ -1,11 +1,7 @@
 package com.example.lifemap.ui.screens
 
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -31,11 +27,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.lifemap.ui.Screen
 import com.example.lifemap.ui.SettingsViewModel
 import android.Manifest
 import android.content.Context
 import android.os.Build
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +51,6 @@ fun SettingsScreen(
         mutableStateOf(sharedPrefs.getBoolean("notifications_enabled", false))
     }
 
-    // Launcher per chiedere il permesso (Android 13+)
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -120,13 +116,12 @@ fun SettingsScreen(
                     SettingsLabel(
                         icon = Icons.Default.Notifications,
                         title = "Notifiche Anniversari",
-                        subtitle = "Ricevi avvisi per i tuoi ricordi preferiti"
+                        subtitle = "Ricevi avvisi per\n i tuoi ricordi preferiti"
                     )
                     Switch(
                         checked = notificationsEnabled,
                         onCheckedChange = { enabled ->
                             if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                // Chiede il permesso se l'utente vuole attivare
                                 permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                             } else {
                                 notificationsEnabled = enabled
@@ -264,11 +259,23 @@ fun ThemeSelectionSection(
                 options.forEach { (value, label) ->
                     val isSelected = currentPreference == value
 
+                    val backgroundColor by animateColorAsState(
+                        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                        animationSpec = tween(durationMillis = 300),
+                        label = "backgroundColor"
+                    )
+
+                    val textColor by animateColorAsState(
+                        targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        animationSpec = tween(durationMillis = 300),
+                        label = "textColor"
+                    )
+
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(50))
-                            .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
+                            .background(backgroundColor)
                             .clickable { onPreferenceChange(value) }
                             .padding(vertical = 10.dp),
                         contentAlignment = Alignment.Center
@@ -277,8 +284,7 @@ fun ThemeSelectionSection(
                             text = label,
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary
-                            else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = textColor
                         )
                     }
                 }

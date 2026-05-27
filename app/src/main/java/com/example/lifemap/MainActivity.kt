@@ -39,21 +39,6 @@ class MainActivity : FragmentActivity() {
             workRequest
         )
 
-//        val testWorkRequest = OneTimeWorkRequestBuilder<MemoryNotificationWorker>()
-//            .setConstraints(
-//                Constraints.Builder()
-//                    .setRequiresBatteryNotLow(true)
-//                    .build()
-//            )
-//            .build()
-//
-//        // Usiamo REPLACE in modo che sovrascriva qualsiasi tentativo precedente bloccato
-//        WorkManager.getInstance(applicationContext).enqueueUniqueWork(
-//            "MemoryAnniversaryWork_TEST",
-//            ExistingWorkPolicy.REPLACE,
-//            testWorkRequest
-//        )
-
         enableEdgeToEdge()
         setContent {
             val context = LocalContext.current

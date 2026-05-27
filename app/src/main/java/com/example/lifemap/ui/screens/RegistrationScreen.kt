@@ -91,7 +91,7 @@ fun RegistrationScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 24.dp), // Margini ridotti e bilanciati
+                    .padding(horizontal = 16.dp, vertical = 24.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Surface(

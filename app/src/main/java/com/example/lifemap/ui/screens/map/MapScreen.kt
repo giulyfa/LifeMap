@@ -124,7 +124,11 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
                     title = memory.title,
                     snippet = memory.description,
                     icon = getPinColorForCategory(memory.category),
-                    anchor = Offset(0.5f, 1.0f)
+                    anchor = Offset(0.5f, 1.0f),
+                    onClick = {
+                        navController.navigate("detail_screen/${memory.id}")
+                        true
+                    }
                 )
             }
         }

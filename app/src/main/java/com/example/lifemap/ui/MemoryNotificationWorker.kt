@@ -37,12 +37,10 @@ class MemoryNotificationWorker(
         favorites.forEach { memory ->
             val memoryDate = Calendar.getInstance().apply { timeInMillis = memory.date }
 
-            // 1. Controllo Anniversario (stesso giorno e mese, ma anno successivo)
             val isAnniversary = today.get(Calendar.MONTH) == memoryDate.get(Calendar.MONTH) &&
                     today.get(Calendar.DAY_OF_MONTH) == memoryDate.get(Calendar.DAY_OF_MONTH) &&
                     today.get(Calendar.YEAR) > memoryDate.get(Calendar.YEAR)
 
-            // 2. Controllo Primo Mese (esattamente un mese dopo la data del ricordo)
             val oneMonthLater = (memoryDate.clone() as Calendar).apply { add(Calendar.MONTH, 1) }
             val isOneMonthLater = today.get(Calendar.YEAR) == oneMonthLater.get(Calendar.YEAR) &&
                     today.get(Calendar.MONTH) == oneMonthLater.get(Calendar.MONTH) &&
@@ -68,7 +66,6 @@ class MemoryNotificationWorker(
     private fun sendNotification(title: String, message: String, memoryId: Int) {
         val channelId = "memories_anniversary"
 
-        // 1. Creazione del canale di notifica (obbligatorio su Android 8.0+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
@@ -87,11 +84,10 @@ class MemoryNotificationWorker(
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
             .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT) // Per dispositivi pre-Oreo
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .build()
 
-        // 3. Controllo dei permessi di notifica per Android 13+ (API 33+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(
                     applicationContext,

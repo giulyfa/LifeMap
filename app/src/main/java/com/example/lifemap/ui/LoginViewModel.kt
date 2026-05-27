@@ -25,7 +25,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     val state: StateFlow<LoginState> = _state
 
     private val _isAlreadyLogged =
-        MutableStateFlow<Boolean?>(null) // null = in caricamento, true = loggato, false = non loggato
+        MutableStateFlow<Boolean?>(null)
     val isAlreadyLogged: StateFlow<Boolean?> = _isAlreadyLogged.asStateFlow()
 
     init {

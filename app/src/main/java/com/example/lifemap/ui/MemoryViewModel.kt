@@ -87,7 +87,6 @@ class MemoryViewModel(
         val currentState = _uiState.value
         val email = _currentUserEmail.value
 
-        // Non salva se il titolo è vuoto
         if (currentState.title.isBlank()) return
 
         if (currentState.title.isNotBlank() && email.isNotBlank()) {
