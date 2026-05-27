@@ -130,6 +130,11 @@ class MemoryViewModel(
         return memoryDao.getMemoryById(id)
     }
 
+    fun deleteMemory(memory: Memory) {
+        viewModelScope.launch {
+            memoryDao.delete(memory)
+        }
+    }
 
     class Factory(
         private val memoryDao: MemoryDao,

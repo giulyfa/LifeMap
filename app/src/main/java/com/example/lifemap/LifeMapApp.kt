@@ -50,7 +50,8 @@ fun LifeMapApp(
         Screen.Settings
     )
 
-    val showBottomBar = currentDestination?.route !in listOf(Screen.Login.route, Screen.Registration.route)
+    val route = currentDestination?.route ?: ""
+    val showBottomBar = route !in listOf(Screen.Login.route, Screen.Registration.route) && !route.startsWith("detail_screen")
 
     Box(modifier = Modifier.fillMaxSize()) {
 

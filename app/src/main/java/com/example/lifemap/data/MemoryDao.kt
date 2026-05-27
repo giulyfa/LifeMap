@@ -5,11 +5,11 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MemoryDao {
-    // Inserisce un nuovo ricordo e restituisce l'ID della riga.
+    // Inserisce un nuovo ricordo
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMemory(memory: Memory): Long
 
-    // Legge tutti i ricordi.
+    // Legge tutti i ricordi
     @Query("SELECT * FROM memories WHERE userEmail = :email ORDER BY date DESC")
     fun getAllMemoriesForUser(email: String): Flow<List<Memory>>
 
@@ -30,4 +30,7 @@ interface MemoryDao {
 
     @Query("SELECT * FROM memories WHERE isFavorite = 1 AND userEmail = :email")
     suspend fun getAllFavoriteMemories(email: String): List<Memory>
+
+    @Delete
+    suspend fun delete(memory: Memory)
 }

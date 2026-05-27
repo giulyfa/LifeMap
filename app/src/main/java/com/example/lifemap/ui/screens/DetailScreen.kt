@@ -2,9 +2,12 @@ package com.example.lifemap.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.outlined.CalendarMonth
@@ -32,12 +35,12 @@ fun DetailScreen(
     navController: NavController
 ) {
     var memory by remember { mutableStateOf<Memory?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(memoryId) {
         memory = viewModel.getMemoryById(memoryId)
     }
 
-    val isDarkTheme = !MaterialTheme.colorScheme.background.colorsM3LightOrDarkCheck()
     val textColor = MaterialTheme.colorScheme.onBackground
 
     val formattedDate = remember(memory?.date) {
@@ -85,14 +88,84 @@ fun DetailScreen(
                     titleContentColor = if (textColor == Color.White) Color.Black else Color.White
                 )
             )
+        },
+
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(bottom = 16.dp, top = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Button(
+                    onClick = { showDeleteDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    ),
+                    shape = RoundedCornerShape(25.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DeleteOutline,
+                        contentDescription = "Elimina",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Elimina Ricordo",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
     ) { innerPadding ->
+
         memory?.let { currentMemory ->
+
+            if (showDeleteDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteDialog = false },
+                    icon = {
+                        Icon(Icons.Default.DeleteOutline, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                    },
+                    title = {
+                        Text(text = "Elimina ricordo")
+                    },
+                    text = {
+                        Text(text = "Sei sicura di voler eliminare definitivamente questo ricordo? L'azione non può essere annullata.")
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showDeleteDialog = false
+                                viewModel.deleteMemory(currentMemory)
+                                navController.popBackStack()
+                            }
+                        ) {
+                            Text("Elimina", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showDeleteDialog = false }
+                        ) {
+                            Text("Annulla", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    },
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            }
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
                     .padding(innerPadding)
+                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = 20.dp, vertical = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
@@ -196,9 +269,4 @@ fun DetailScreen(
             }
         }
     }
-}
-
-private fun Color.colorsM3LightOrDarkCheck(): Boolean {
-    val luminance = 0.2126 * this.red + 0.7152 * this.green + 0.0722 * this.blue
-    return luminance > 0.5
 }
