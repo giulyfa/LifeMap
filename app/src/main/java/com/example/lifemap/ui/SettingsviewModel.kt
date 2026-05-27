@@ -12,11 +12,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun logout(onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {
-                val loggedUser = userDao.getLoggedUser()
-                if (loggedUser != null) {
-                    userDao.updateLoginStatus(loggedUser.id, false)
-                }
-
+                userDao.logoutAllUsers()
                 onSuccess()
             } catch (e: Exception) {
                 onSuccess()

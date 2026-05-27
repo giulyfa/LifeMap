@@ -89,7 +89,7 @@ class MemoryViewModel(
 
         if (currentState.title.isBlank()) return
 
-        if (currentState.title.isNotBlank() && email.isNotBlank()) {
+        if (email.isNotBlank()) {
             viewModelScope.launch {
                 val newMemory = Memory(
                     title = currentState.title,

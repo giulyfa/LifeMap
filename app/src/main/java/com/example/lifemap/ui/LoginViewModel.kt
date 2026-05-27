@@ -36,11 +36,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 val loggedUser = dao.getLoggedUser()
-                if (loggedUser != null) {
-                    _isAlreadyLogged.value = true
-                } else {
-                    _isAlreadyLogged.value = false
-                }
+                _isAlreadyLogged.value = loggedUser != null
             } catch (e: Exception) {
                 _isAlreadyLogged.value = false
             }
@@ -67,7 +63,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
             } catch (e: Exception) {
-                _state.value = LoginState.Error("Errore durante il login$e")
+                _state.value = LoginState.Error("Errore durante il login $e")
             }
         }
     }
@@ -77,24 +73,16 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             _state.value = LoginState.Loading
             try {
                 val user = dao.getUserByEmail(email)
-                if (user == null) {
-
+                val userId = if (user == null) {
                     val nome = displayName?.substringBefore(" ") ?: "Utente"
                     val cognome = displayName?.substringAfter(" ") ?: "Google"
-
-                    val newUser = User(
-                        nome = nome,
-                        cognome = cognome,
-                        email = email,
-                        password = "GOOGLE_AUTH_PLACEHOLDER"
-                    )
-                    val id = dao.insertUser(newUser)
-                    dao.updateLastLogin(id.toInt(), System.currentTimeMillis())
-                    dao.updateLoginStatus(id.toInt(), true)
+                    val newUser = User(nome = nome, cognome = cognome, email = email, password = "GOOGLE_AUTH_PLACEHOLDER")
+                    dao.insertUser(newUser).toInt()
                 } else {
-                    dao.updateLastLogin(user.id, System.currentTimeMillis())
-                    dao.updateLoginStatus(user.id, true)
+                    user.id
                 }
+                dao.updateLastLogin(userId, System.currentTimeMillis())
+                dao.updateLoginStatus(userId, true)
                 _state.value = LoginState.Success
             } catch (e: Exception) {
                 _state.value = LoginState.Error("Errore durante la registrazione tramite Google $e")
