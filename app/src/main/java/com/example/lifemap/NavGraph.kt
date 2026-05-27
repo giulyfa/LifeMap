@@ -65,7 +65,7 @@ fun LifeMapNavGraph(
         }
 
         composable(
-            route = "detail_screen/{memoryId}",
+            route = Screen.Detail.route,
             arguments = listOf(navArgument("memoryId") { type = NavType.IntType })
         ) { backStackEntry ->
             val memoryId = backStackEntry.arguments?.getInt("memoryId") ?: return@composable

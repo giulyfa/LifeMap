@@ -31,6 +31,7 @@ import androidx.navigation.NavController
 import com.example.lifemap.R
 import com.example.lifemap.data.MemoryCategory
 import com.example.lifemap.ui.MemoryViewModel
+import com.example.lifemap.ui.Screen
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptor
@@ -126,7 +127,7 @@ fun MapScreen(navController: NavController, viewModel: MemoryViewModel) {
                     icon = getPinColorForCategory(memory.category),
                     anchor = Offset(0.5f, 1.0f),
                     onClick = {
-                        navController.navigate("detail_screen/${memory.id}")
+                        navController.navigate(Screen.Detail.createRoute(memory.id))
                         true
                     }
                 )

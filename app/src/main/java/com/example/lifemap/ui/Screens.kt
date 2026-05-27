@@ -13,11 +13,8 @@ sealed class Screen(val route: String, val label: String? = null, val icon: Imag
     object List : Screen("list", "Lista", Icons.AutoMirrored.Filled.List)
     object Profile : Screen("profile", "Profilo", Icons.Default.Person)
     object Settings : Screen("settings", "Impostazioni", Icons.Default.Settings)
-
     object Detail : Screen("detail/{memoryId}") {
         fun createRoute(memoryId: Int) = "detail/$memoryId"
     }
-
     object Registration : Screen("registration")
-
 }

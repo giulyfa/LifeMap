@@ -14,7 +14,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             try {
                 userDao.logoutAllUsers()
                 onSuccess()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 onSuccess()
             }
         }

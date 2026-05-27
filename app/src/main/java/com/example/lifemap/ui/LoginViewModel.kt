@@ -5,7 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lifemap.data.AppDatabase
 import com.example.lifemap.data.User
-import com.example.lifemap.data.UserDao
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,7 +36,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val loggedUser = dao.getLoggedUser()
                 _isAlreadyLogged.value = loggedUser != null
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _isAlreadyLogged.value = false
             }
         }

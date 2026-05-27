@@ -123,7 +123,6 @@ class MemoryViewModel(
         }
     }
 
-    fun updateAddress(addr: String) { _uiState.update { it.copy(address = addr) } }
     fun updateDate(newDate: Long) { _uiState.update { it.copy(date = newDate) } }
 
     suspend fun getMemoryById(id: Int): Memory? {
